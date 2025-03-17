@@ -1,0 +1,103 @@
+---
+title: 'Webhooks'
+---
+
+Webhooks are a great way for Glyde to keep your application informed of changes in your account and transaction status updates.
+
+When a transaction is initiated, it progresses through various stages, from pending to either successful or failed. At each stage, we will send a notification to the webhook URL registered in your merchant account.
+
+# Webhook Setup
+Log into your account and go to Settings > API Keys & Webhook. From there, update your webhook URL.
+
+# Webhook URL
+The webhook URL is a publicly accessible endpoint on your application/website that can receive a post request from Glyde. We will send updates about transactions to the endpoint.
+
+# Signing Key
+The webhook will be signed using the secret key, a secure, randomly generated string. This ensures that the request originates from Glyde. The signing key will be included in the webhook request header X-Signature-Hash when sending data to your webhook URL.
+
+### Signature Validation
+
+To validate the signature, you can use the following PHP code:
+
+```javascript
+const crypto = require('crypto');
+const http = require('http');
+
+const PORT = process.env.PORT || 3000; // Use environment variable for port or default to 3000
+const GLYDE_SIGNING_KEY = 'YOUR_SIGNING_KEY'; // Replace with your actual signing key
+
+const server = http.createServer((req, res) => {
+  if (req.method !== 'POST' || !req.headers['http-x-signature-hash']) {
+    res.statusCode = 400;
+    res.end('Invalid request method or missing signature header.');
+    return;
+  }
+
+  let inputData = '';
+  req.on('data', (chunk) => {
+    inputData += chunk.toString();
+  });
+
+  req.on('end', () => {
+    const signature = req.headers['http-x-signature-hash'];
+    const calculatedHash = crypto.createHmac('sha256', GLYDE_SIGNING_KEY)
+      .update(inputData)
+      .digest('hex');
+
+    if (signature !== calculatedHash) {
+      res.statusCode = 401;
+      res.end('Invalid signature.');
+      return;
+    }
+
+    res.statusCode = 200;
+    res.end();
+
+    // Parse JSON data (assuming it's in the request body)
+    try {
+      const event = JSON.parse(inputData);
+      // Process the data in the 'event' object here
+      console.log('Received event:', event);
+    } catch (error) {
+      console.error('Error parsing JSON:', error.message);
+      // Handle JSON parsing error appropriately (e.g., send error response)
+    }
+  });
+});
+
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+```
+
+```php
+<?php
+
+if (strtoupper($_SERVER['REQUEST_METHOD']) != 'POST' || !in_array('HTTP_X_SIGNATURE_HASH', $_SERVER)) {
+  exit();
+}
+
+// Get the input from the request.
+$input = @file_get_contents("php://input");
+
+// Replace SIGNING_KEY with the signing key from your account
+define('GLYDE_SIGNING_KEY', 'SIGNING_KEY');
+
+// Validate the authenticity of the data sent
+if ($_SERVER['HTTP_X_SIGNATURE_HASH'] !== hash_hmac('sha256', $input, GLYDE_SIGNING_KEY)) {
+  exit();
+}
+
+// Send an HTTP success response back to Glyde
+
+http_response_code(200);
+
+//Decode the JSON string and convert it to an associative array.
+$event = json_decode($input, true);
+
+// **(Optional Processing Placeholder):**
+// Add your code here to process the data in the $event variable
+
+exit();
+?>
+```
