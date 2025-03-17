@@ -1,0 +1,29 @@
+---
+title: 'Getting Started'
+description: 'Welcome to the Glyde Developer Documentation.'
+---
+
+
+Glyde is your all-in-one toolkit for seamlessly integrating payment solutions into your application. Whether you need a simple integration or a fully customized solution, our powerful APIs give you complete control over your payment experience. Our docs will help you learn how to integrate our payment and verification APIs.
+
+<Card
+  title="API Reference"
+  icon="settings"
+  href="/api-reference/introduction"
+>
+  View our API Reference
+</Card>
+
+## Authentication
+
+All API endpoints are authenticated using Bearer tokens.
+
+```json
+  {
+    "Authorization": "Bearer {secret-key}"
+  }
+```
+
+If you do not include the authorization header in your requests you will get an Unauthenticated error.
+
+
