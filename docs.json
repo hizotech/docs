@@ -23,16 +23,25 @@
             "group": "API Basics",
             "pages": [
               "api-reference/testing",
-              "api-reference/webhooks"
+              "api-reference/webhooks",
+              "api-reference/errors",
+              "api-reference/get-banks"
             ]
           },
           {
             "group": "Payouts",
-            "pages": []
+            "pages": [
+              "api-reference/payouts/resolve-account-name",
+              "api-reference/payouts/initiate-transfer",
+              "api-reference/payouts/list-transactions",
+              "api-reference/payouts/fetch-transaction"
+            ]
           },
           {
             "group": "Payins",
-            "pages": []
+            "pages": [
+              "api-reference/payins/initialise-collection-request"
+            ]
           }
         ]
       },
@@ -80,9 +89,9 @@
     ]
   },
   "logo": {
-    "light": "/logo/light.svg",
+    "light": "/logo/light.png",
     "dark": "/logo/dark.svg",
-    "href": "https://useglyde.co"
+    "href": "https://docs.useglyde.co"
   },
   "navbar": {
     "links": [
