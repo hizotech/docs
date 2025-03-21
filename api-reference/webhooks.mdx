@@ -15,11 +15,12 @@ The webhook URL is a publicly accessible endpoint on your application/website th
 # Signing Key
 The webhook will be signed using the secret key, a secure, randomly generated string. This ensures that the request originates from Glyde. The signing key will be included in the webhook request header X-Signature-Hash when sending data to your webhook URL.
 
-### Signature Validation
+# Signature Validation
 
 To validate the signature, you can use the following PHP code:
 
-```javascript
+<CodeGroup>
+```javascript SignatureValidator.js
 const crypto = require('crypto');
 const http = require('http');
 
@@ -70,9 +71,7 @@ server.listen(PORT, () => {
 });
 ```
 
-```php
-<?php
-
+```php SignatureValidator.php
 if (strtoupper($_SERVER['REQUEST_METHOD']) != 'POST' || !in_array('HTTP_X_SIGNATURE_HASH', $_SERVER)) {
   exit();
 }
@@ -99,5 +98,98 @@ $event = json_decode($input, true);
 // Add your code here to process the data in the $event variable
 
 exit();
-?>
 ```
+
+
+```python SignatureValidator.py 
+import http.server
+import hashlib
+import json
+
+class GlydeWebhookHandler(http.server.BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != '/':
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        if 'x-signature-hash' not in self.headers:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b'Invalid request missing signature header.')
+            return
+
+        input_data = self.rfile.read(int(self.headers['Content-Length']))
+
+        if not input_data:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b'Failed to read request body.')
+            return
+
+        # Replace 'SIGNING_KEY' with the actual signing key provided by Glyde
+        GLYDE_SIGNING_KEY = b'SIGNING_KEY'
+
+        # Validate the authenticity of the data sent
+        if self.headers['x-signature-hash'].encode() != hashlib.sha256(input_data + GLYDE_SIGNING_KEY).hexdigest().encode():
+            self.send_response(401)
+            self.end_headers()
+            self.wfile.write(b'Invalid signature.')
+            return
+
+        # Decode the JSON data
+        try:
+            event = json.loads(input_data.decode())
+        except ValueError:
+            self.send_response(400)
+            self.end_headers()
+            self.wfile.write(b'Invalid JSON format in request body.')
+            return
+
+        # Optional processing logic
+        # Add your code here to process the event data
+
+        self.send_response(200)
+        self.end_headers()
+
+if __name__ == '__main__':
+    server_address = ('', 8000)
+    httpd = http.server.HTTPServer(server_address, GlydeWebhookHandler)
+    print('Server running on port 8000...')
+    httpd.serve_forever()
+```
+</CodeGroup>
+
+# Event Types
+
+<CodeGroup>
+```json Transfer Success
+{
+  "event": "transfer.success",
+  "data": {
+    "reference": "fa59e3c4-14b6-370e-ab0c-a8eaa7af2056",
+    "merchant_reference": "fa6ba254-ba5c-4db2-9015-8caf3107cd56",
+    "type": "debit",
+    "amount": 200,
+    "status": "successful",
+    "fee": 20,
+    "created_at": "2025-03-01T21:20:54.000000Z"
+  }
+}
+```
+
+```json Transfer Failed
+{
+  "event": "transfer.failed",
+  "data": {
+    "reference": "fa59e3c4-14b6-370e-cb0c-a8eaa7af2056",
+    "merchant_reference": "fa9ba254-ha5c-4db2-9015-8caf3107cd56",
+    "type": "debit",
+    "amount": 200,
+    "status": "failed",
+    "fee": 20,
+    "created_at": "2025-03-01T21:10:54.000000Z"
+  }
+}
+```
+</CodeGroup>

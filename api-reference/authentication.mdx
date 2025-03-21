@@ -1,6 +1,33 @@
 ---
 title: 'Authentication'
+description: 'Learn how to authenticate your requests to Glyde APIs.'
 ---
 
-API Authentication
-We authenticate your requests using your API secret key. This can be found in the settings section of your merchant dashboard.
+There are two modes of operation on your Glyde account:
+
+1. Sandbox/Test Mode: This mode does not require the use of real money and designed exclusively for testing purposes. You can simulate data to replicate real-world scenarios using our test cards and bank accounts without any financial impact. It lets you test and validate your integration before going live.
+2. Live Mode: This mode is the production environment where real money, real transactions, and real operations take place. It handles actual customer data and financial transactions. Only switch to this after you've tested your integrations thoroughly on test mode.
+
+You can easily switch between Live and Test modes, by using the toggle button in the menu sidebar on your settings page. 
+When you switch between modes, we'll also switch the API keys shown. Test keys will always have _sandbox as prefix (for example, pk_sandbox_ce9c428809ef4fb6ee9bd5b8c9b49546f0735dd)
+
+# Get your API keys
+When you create a Glyde account, you will be given two kinds of API keys:
+1. Secret key: The most powerful type of key. It authorizes any action on your account, so it should never be exposed publicly.
+2. Public key: The key you'll use in "public" scenarios, like in front-end JavaScript code
+
+Your API keys are very vital to making requests successfully to our servers. To get your API keys for Sandbox mode:
+1. Log into your Glyde account
+2. Navigate to settings
+3. Select API Configuration and copy your keys
+
+# Authorizing API calls
+All API calls on Glyde are protected by default. Any API requests made without proper authorization will result in the status code 401: Unauthenticated.
+
+<Info>
+### Safeguard your API Key
+Your secret key can perform any actions on your Glyde account without restriction. It should be kept confidential and only stored on your servers, preferably as an environment variable.
+It should not be included in your Git repository or front-end JavaScript code.
+</Info>
+
+
