@@ -1,9 +1,159 @@
 ---
 title: 'Get Banks'
+description: 'Retrieve a list of supported banks'
 ---
-The **Get Banks** API endpoint retrieves a list of banks available in the system. 
-This endpoint is typically used to fetch information about banks for purposes such as 
-displaying them in a dropdown menu, validating bank details, or integrating with financial services.
 
-Use this endpoint to retrieve bank information efficiently and integrate it into your application workflows.
+The Get Banks endpoint retrieves a list of all banks supported by Glyde for transfers and account verification. Use the returned bank codes when making transfers or resolving account names.
 
+## Endpoint
+
+```
+GET /v1/banks
+```
+
+## Example Request
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.useglyde.co/v1/banks" \
+  -H "Authorization: Bearer sk_live_your_secret_key" \
+  -H "Content-Type: application/json"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const response = await axios.get('https://api.useglyde.co/v1/banks', {
+  headers: {
+    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Content-Type': 'application/json'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get('https://api.useglyde.co/v1/banks', headers=headers)
+print(response.json())
+```
+
+```php PHP
+<?php
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://api.useglyde.co/v1/banks',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk_live_your_secret_key',
+        'Content-Type: application/json'
+    ],
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+$data = json_decode($response, true);
+print_r($data);
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "status": "success",
+  "message": "Banks retrieved successfully",
+  "data": [
+    {
+      "name": "Access Bank",
+      "code": "044",
+      "slug": "access-bank"
+    },
+    {
+      "name": "First Bank of Nigeria",
+      "code": "011",
+      "slug": "first-bank"
+    },
+    {
+      "name": "Guaranty Trust Bank",
+      "code": "058",
+      "slug": "gtbank"
+    },
+    {
+      "name": "United Bank for Africa",
+      "code": "033",
+      "slug": "uba"
+    },
+    {
+      "name": "Zenith Bank",
+      "code": "057",
+      "slug": "zenith-bank"
+    }
+  ]
+}
+```
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Full name of the bank |
+| `code` | string | Bank code used for transfers and verification |
+| `slug` | string | URL-friendly identifier for the bank |
+
+## Using Bank Codes
+
+The `code` field is what you'll use when:
+
+1. **Resolving account names** - Pass as the `bank_code` parameter
+2. **Initiating transfers** - Pass as the `bank_code` in the request body
+
+### Example: Resolve Account with Bank Code
+
+```bash
+curl -X GET "https://api.useglyde.co/v1/account-enquiry?account_number=0264341458&bank_code=058" \
+  -H "Authorization: Bearer sk_live_your_secret_key"
+```
+
+### Example: Initiate Transfer with Bank Code
+
+```bash
+curl -X POST "https://api.useglyde.co/v1/transfer/initiate" \
+  -H "Authorization: Bearer sk_live_your_secret_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "amount": 100000,
+    "bank_code": "058",
+    "account_number": "0264341458",
+    "reference": "payout_ref_123"
+  }'
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Cache the Bank List">
+    The list of banks doesn't change frequently. Cache this list in your application to reduce API calls. Refresh the cache periodically (e.g., daily or weekly).
+  </Accordion>
+
+  <Accordion title="Use for Dropdowns">
+    Display the bank list in a dropdown for users to select their bank when adding beneficiaries. This ensures valid bank codes are always used.
+  </Accordion>
+
+  <Accordion title="Validate Before Transfer">
+    Always validate that a bank code exists before attempting a transfer. This prevents errors from invalid bank codes.
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+  Store the bank list in your database or cache and update it periodically to reduce latency for your users.
+</Tip>

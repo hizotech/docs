@@ -1,17 +1,130 @@
 ---
-title: 'Errors'
+title: 'Error Handling'
+description: 'Understand API errors and how to handle them'
 ---
 
-Glyde's API is RESTful and as such, uses conventional HTTP response codes to indicate the success or failure of requests.
+Glyde uses standard HTTP status codes to indicate the success or failure of API requests. Understanding these errors helps you build resilient integrations that handle edge cases gracefully.
 
-### Possible Errors
+## HTTP Status Codes
 
-| Error Code | Description                          |
-|------------|--------------------------------------|
-| 400        | Bad Request - The request was invalid. |
-| 401        | Unauthorized - Authentication failed. |
-| 422        | Validation Error - Validation failed. |
-| 403        | Forbidden - You do not have access.   |
-| 404        | Not Found - The resource was not found. |
-| 500        | Internal Server Error - An unexpected error occurred. |
-| 503        | Service Unavailable - The service is temporarily unavailable. |
+| Code | Meaning | Description |
+|------|---------|-------------|
+| **200** | Success | Request completed successfully |
+| **400** | Bad Request | The request was malformed or missing required data |
+| **401** | Unauthorized | Authentication failed—check your API key |
+| **404** | Not Found | The requested resource doesn't exist |
+| **422** | Validation Error | The request data failed validation rules |
+| **429** | Rate Limited | Too many requests—slow down and retry |
+| **500** | Server Error | Something went wrong on Glyde's side |
+
+## Error Response Format
+
+All error responses follow a consistent structure:
+
+```json
+{
+  "status": "failed",
+  "message": "Human-readable error description",
+  "data": null,
+  "errors": {
+    "field_name": ["Specific error for this field"]
+  }
+}
+```
+
+- `status` — Always `"failed"` for errors
+- `message` — A general description of what went wrong
+- `errors` — Field-specific validation errors (only present for 422 responses)
+
+## Common Errors and Solutions
+
+### Authentication Failed (401)
+
+Your API key is missing, invalid, or doesn't match the environment.
+
+**Solutions:**
+- Verify the `Authorization` header is present and formatted as `Bearer {your_key}`
+- Check that you're using the correct key for the environment (sandbox vs. production)
+- Regenerate your key in the dashboard if it may have been compromised
+
+### Validation Error (422)
+
+The request data didn't pass validation. The `errors` object tells you exactly what's wrong.
+
+```json
+{
+  "status": "failed",
+  "message": "Validation error",
+  "errors": {
+    "amount": ["The amount must be at least 100."],
+    "account_number": ["The account number must be 10 digits."]
+  }
+}
+```
+
+**Solutions:**
+- Check each field mentioned in `errors` and fix the issues
+- Ensure required fields are present
+- Verify data types (numbers vs. strings) and formats
+
+### Insufficient Funds
+
+Your Glyde wallet balance is too low for the requested transfer.
+
+**Solutions:**
+- Check your wallet balance via the API or dashboard
+- Fund your wallet before retrying
+- Consider the transfer fee when calculating required balance
+
+### Duplicate Reference
+
+Each transaction must have a unique `reference`. You've already used this reference for another transaction.
+
+**Solutions:**
+- Generate unique references for each transaction (UUIDs work well)
+- If retrying a failed transaction, use a new reference
+- Check if the original transaction actually succeeded before creating a new one
+
+### Account Verification Failed
+
+The bank account couldn't be verified—it may not exist or details are incorrect.
+
+**Solutions:**
+- Double-check the account number (must be exactly 10 digits)
+- Verify the bank code is correct (use the `/banks` endpoint)
+- Confirm with the account holder that details are accurate
+
+### Rate Limited (429)
+
+You're making too many requests too quickly.
+
+**Solutions:**
+- Implement exponential backoff when retrying
+- Cache responses where appropriate (e.g., bank list)
+- Spread requests over time instead of bursting
+
+## Best Practices
+
+### 1. Always Check Status Codes
+
+Don't assume success. Check the HTTP status code and `status` field before processing responses.
+
+### 2. Show User-Friendly Messages
+
+Don't display raw API errors to users. Map them to helpful, actionable messages appropriate for your audience.
+
+### 3. Log Errors for Debugging
+
+Store error responses with request details for troubleshooting. Include timestamps, request IDs, and relevant context.
+
+### 4. Implement Retry Logic
+
+For `5xx` errors and network failures, retry with exponential backoff. Don't retry `4xx` errors without fixing the underlying issue.
+
+### 5. Handle Edge Cases
+
+Consider what happens when:
+- Network requests timeout
+- Webhooks arrive before API responses
+- Users retry actions multiple times
+- Your server restarts mid-transaction

@@ -1,0 +1,501 @@
+openapi: 3.0.3
+info:
+  title: "Glyde Public Api <> Staging"
+  description: ""
+  version: 1.0.0
+servers:
+  - url: api.useglyde.xyz
+paths:
+  /v1/collection/initialise:
+    post:
+      summary: "Initialise Collection Request"
+      operationId: initialiseCollectionRequest
+      description: ""
+      parameters: []
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Collection Request created successfully"
+                  data:
+                    url: "https://pay.useglyde.io/f369f561-aaa4-4701-aeb1-ce79f438efc1"
+                properties:
+                  message:
+                    type: string
+                    example: "Collection Request created successfully"
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        example: "https://pay.useglyde.io/f369f561-aaa4-4701-aeb1-ce79f438efc1"
+        500:
+          description: ""
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n    \"message\":\"Oops! something went wrong\",\n}"
+      tags:
+        - Collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  description: "The iso of the currency associated with the collection request. The <code>iso</code> of an existing record in the currencies table."
+                  example: dolor
+                  nullable: false
+                reference:
+                  type: string
+                  description: "A unique reference string you can pass for the transaction. Must be between 8 and 255 characters. Must be at least 8 characters. Must not be greater than 255 characters."
+                  example: iwxwkgbdnayis
+                  nullable: false
+                amount:
+                  type: number
+                  description: "The amount to be collected. Must be a numeric value. Must be at least 100."
+                  example: 94
+                  nullable: false
+                customer_name:
+                  type: string
+                  description: "The full name of the customer. Must not be greater than 255 characters."
+                  example: ztu
+                  nullable: false
+                customer_email:
+                  type: string
+                  description: "The email address of the customer. Must not be greater than 255 characters."
+                  example: juliana91@example.org
+                  nullable: false
+                customer_phone:
+                  type: string
+                  description: "The phone number of the customer. This is optional and must be a string with a maximum length of 255 characters. Must not be greater than 255 characters."
+                  example: hrfgizigkhjptokkrejaihjny
+                  nullable: true
+                channels:
+                  type: array
+                  description: "Individual payment channel values. Must be either valid card_payment, bank_transfer class."
+                  example:
+                    - bank_transfer
+                  items:
+                    type: string
+                    enum:
+                      - card_payment
+                      - bank_transfer
+                default_channel:
+                  type: string
+                  description: "The default payment channel to be used. Must be either valid card_payment, bank_transfer class."
+                  example: bank_transfer
+                  nullable: true
+                  enum:
+                    - card_payment
+                    - bank_transfer
+                meta:
+                  type: object
+                  description: "Additional metadata for the collection request. This must be an array and is optional."
+                  example: null
+                  nullable: true
+                  properties: {}
+              required:
+                - currency
+                - reference
+                - amount
+                - customer_name
+                - customer_email
+                - channels
+      security: []
+  /v1/check-balance:
+    get:
+      summary: "Check Wallet Balance"
+      operationId: checkWalletBalance
+      description: ""
+      parameters:
+        - in: header
+          name: x-biz-number
+          description: ""
+          example: "993932"
+          schema:
+            type: string
+      responses:
+        401:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Authorization Header not present in request"
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: "Authorization Header not present in request"
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+  /v1/account-enquiry:
+    get:
+      summary: "Resolve account name"
+      operationId: resolveAccountName
+      description: "Before initiating a disbursement, you should confirm the name of the recipient.\nThis endpoint will return the name of the recipient."
+      parameters:
+        - in: query
+          name: account_number
+          description: "The account number of the recipient."
+          example: exercitationem
+          required: true
+          schema:
+            type: string
+            description: "The account number of the recipient."
+            example: exercitationem
+            nullable: false
+        - in: query
+          name: bank_code
+          description: "The bank code of the recipient's bank."
+          example: dicta
+          required: true
+          schema:
+            type: string
+            description: "The bank code of the recipient's bank."
+            example: dicta
+            nullable: false
+      responses:
+        200:
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: object
+                example: "{\n\"status\": \"success\",\n \"message\": \"Account retrieved\",\n \"data\": {\n     \"bank_name\": \"GT Bank\",\n     \"account_name\": \"John Doe\",\n     \"account_number\": 2565522112\n },\n \"errors\": null\n},"
+        400:
+          description: "Account name enquiry failed"
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: "Account name enquiry failed"
+                  errors: null
+                  data: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: "Account name enquiry failed"
+                  errors:
+                    type: string
+                    example: null
+                  data:
+                    type: string
+                    example: null
+        422:
+          description: "Validation error"
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: "Validation error"
+                  errors:
+                    account_number:
+                      - "The account number field is required."
+                    bank_code:
+                      - "The bank code field is required."
+                  data: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      account_number:
+                        type: array
+                        example:
+                          - "The account number field is required."
+                        items:
+                          type: string
+                      bank_code:
+                        type: array
+                        example:
+                          - "The bank code field is required."
+                        items:
+                          type: string
+                  data:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+  /v1/verification/bvn-check:
+    post:
+      summary: "Handle the incoming request."
+      operationId: handleTheIncomingRequest
+      description: ""
+      parameters: []
+      responses:
+        200:
+          description: "Successful BVN check"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "BVN check successful"
+      tags:
+        - Endpoints
+      security: []
+  /v1/transactions:
+    get:
+      summary: "List Transactions"
+      operationId: listTransactions
+      description: ""
+      parameters:
+        - in: query
+          name: perPage
+          description: ""
+          example: 25
+          required: false
+          schema:
+            type: integer
+            description: ""
+            example: 25
+            nullable: false
+      responses:
+        401:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Authorization Header not present in request"
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: "Authorization Header not present in request"
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                perPage:
+                  type: integer
+                  description: "Must not be greater than 50. Must be at least 10."
+                  example: 50
+                  nullable: true
+  /v1/transaction/{reference}:
+    get:
+      summary: "Fetch Transaction"
+      operationId: fetchTransaction
+      description: ""
+      parameters:
+        - in: header
+          name: x-biz-number
+          description: ""
+          example: "993932"
+          schema:
+            type: string
+        - in: path
+          name: reference
+          description: ""
+          example: 650612ff-57b6-46f5-94c5-1142cbe76d00
+          required: true
+          schema:
+            type: string
+      responses:
+        401:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Authorization Header not present in request"
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: "Authorization Header not present in request"
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+  /v1/banks:
+    get:
+      summary: "Get list of banks"
+      operationId: getListOfBanks
+      description: ""
+      parameters: []
+      responses:
+        401:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Authorization Header not present in request"
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: "Authorization Header not present in request"
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+  /v1/transfer/initiate:
+    post:
+      summary: "Initiate Transfer."
+      operationId: initiateTransfer
+      description: ""
+      parameters: []
+      responses:
+        200:
+          description: "Transfer initiated successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Transfer initiated successfully"
+      tags:
+        - Transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: ""
+                  example: 2000
+                  nullable: false
+                bank_code:
+                  type: string
+                  description: ""
+                  example: "058"
+                  nullable: false
+                account_number:
+                  type: string
+                  description: ""
+                  example: "0264341458"
+                  nullable: false
+                reference:
+                  type: string
+                  description: ""
+                  example: bb383892h3ubg3u
+                  nullable: false
+              required:
+                - amount
+                - bank_code
+                - account_number
+                - reference
+  /v1/settlement:
+    get:
+      summary: "Fetch all settlements"
+      operationId: fetchAllSettlements
+      description: ""
+      parameters:
+        - in: query
+          name: per_page
+          description: "records per page"
+          example: 18
+          required: true
+          schema:
+            type: integer
+            description: "records per page"
+            example: 18
+            nullable: false
+      responses:
+        401:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Authorization Header not present in request"
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: "Authorization Header not present in request"
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Transactions
+  /v1/settlement/{id}:
+    get:
+      summary: "Get settlement details"
+      operationId: getSettlementDetails
+      description: ""
+      parameters:
+        - in: path
+          name: id
+          description: "The ID of the settlement."
+          example: porro
+          required: true
+          schema:
+            type: string
+      responses:
+        401:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "Authorization Header not present in request"
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: "Authorization Header not present in request"
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Transactions
+tags:
+  - name: Collection
+    description: ""
+  - name: Endpoints
+    description: ""
+  - name: Transaction
+    description: ""
+  - name: Transactions
+    description: ""

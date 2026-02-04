@@ -1,29 +1,74 @@
 ---
 title: 'Getting Started'
-description: 'Welcome to the Glyde Developer Documentation.'
+description: 'Start integrating Glyde APIs into your application'
 ---
 
+Glyde provides a unified API for accepting payments, sending money, managing virtual accounts, and verifying identities in Nigeria.
 
-Glyde is your all-in-one toolkit for seamlessly integrating payment solutions into your application. Whether you need a simple integration or a fully customized solution, our powerful APIs give you complete control over your payment experience. Our docs will help you learn how to integrate our payment and verification APIs.
+## Overview
 
-<Card
-  title="API Reference"
-  icon="settings"
-  href="/api-reference/introduction"
->
-  View our API Reference
-</Card>
+Whether you're building an e-commerce platform, fintech app, or any product that handles money, Glyde gives you the tools to move funds securely and reliably.
 
-## Authentication
+**What you can do with Glyde:**
 
-All API endpoints are authenticated using Bearer tokens.
+- **Accept payments** from customers via card or bank transfer
+- **Send money** to any Nigerian bank account instantly
+- **Create virtual accounts** for customers to receive dedicated payment channels
 
-```json
-  {
-    "Authorization": "Bearer {secret-key}"
-  }
-```
+## Environments
 
-If you do not include the authorization header in your requests you will get an Unauthenticated error.
+Glyde provides two environments for development and production:
 
+| Environment | Base URL | Purpose |
+|-------------|----------|---------|
+| **Sandbox** | `https://sandbox.useglyde.co/v1` | Testing and development |
+| **Production** | `https://api.useglyde.co/v1` | Live transactions with real money |
 
+Start in sandbox to build and test your integration without processing real transactions. When you're ready, switch to production by updating your API keys and base URL.
+
+## Quick Start
+
+<Steps>
+  <Step title="Create Your Account">
+    Sign up at [dashboard.useglyde.co](https://dashboard.useglyde.co) to access your merchant dashboard.
+  </Step>
+  <Step title="Get Your API Keys">
+    Navigate to **Settings** → **API Configuration** to find your secret and public keys. You'll have separate keys for sandbox and production.
+  </Step>
+  <Step title="Configure Webhooks">
+    Set up your webhook URL in the dashboard to receive real-time notifications about transaction status changes. This is essential for knowing when payments complete or transfers succeed.
+  </Step>
+  <Step title="Test Your Integration">
+    Use your sandbox keys to test the full payment flow. Simulate successful and failed transactions using our test credentials.
+  </Step>
+  <Step title="Go Live">
+    Once testing is complete, switch to production keys and start processing real transactions.
+  </Step>
+</Steps>
+
+## Core Capabilities
+
+<CardGroup cols={2}>
+  <Card title="Accept Payments" icon="credit-card" href="/api-reference/payins/initialise-collection-request">
+    Create checkout pages or generate bank transfer details to collect payments from customers.
+  </Card>
+  <Card title="Send Money" icon="paper-plane" href="/api-reference/payouts/initiate-transfer">
+    Transfer funds from your Glyde wallet to any Nigerian bank account in seconds.
+  </Card>
+  <Card title="Virtual Accounts" icon="building-columns" href="/api-reference/guides/virtual-accounts">
+    Issue dedicated bank accounts to customers for recurring payments and easy reconciliation.
+  </Card>
+</CardGroup>
+
+## Integration Patterns
+
+**Server-side integration** is required for all Glyde API calls. Your secret key should never be exposed in client-side code (browsers or mobile apps). Make API calls from your backend server and return only the necessary data to your frontend.
+
+**Webhooks are essential** for production integrations. While you can poll for transaction status, webhooks provide immediate notifications when transactions complete, fail, or require attention.
+
+## Next Steps
+
+- Learn about [Authentication](/api-reference/authentication) to secure your API requests
+- Understand [Webhooks](/api-reference/webhooks) to handle real-time notifications
+- Review [Error Handling](/api-reference/errors) to build resilient integrations
+- Explore [Testing](/api-reference/testing) to validate your implementation

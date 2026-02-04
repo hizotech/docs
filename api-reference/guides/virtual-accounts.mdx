@@ -1,0 +1,159 @@
+---
+title: 'Virtual Accounts'
+description: 'Issue dedicated bank accounts for your customers'
+---
+
+Virtual accounts are dedicated bank account numbers that you create for your customers. When anyone transfers money to a virtual account, the funds automatically appear in your Glyde wallet with full transaction details.
+
+## Why Use Virtual Accounts?
+
+Virtual accounts solve several common payment challenges:
+
+- **Easy reconciliation** — Each customer has their own account number, making it simple to match payments to customers
+- **No manual matching** — Funds are automatically attributed to the right customer
+- **Recurring payments** — Customers can pay anytime by transferring to their dedicated account
+- **Professional experience** — Customers feel like they have a "real" account with your business
+
+## Account Types
+
+Glyde offers two types of virtual accounts for different use cases:
+
+### Static Accounts
+
+Permanent accounts tied to a verified customer. These never expire and can receive unlimited payments.
+
+**Best for:**
+- Customer wallets
+- Subscription payments
+- Recurring billing
+- Long-term customer relationships
+
+**Requirements:** Customer BVN verification is required for regulatory compliance.
+
+### Dynamic Accounts
+
+Temporary accounts created for specific transactions. They expect a particular amount and expire after a set time.
+
+**Best for:**
+- One-time invoice payments
+- E-commerce checkout (alternative to hosted checkout)
+- Pay-on-delivery confirmation
+- Time-sensitive collections
+
+**Requirements:** No BVN needed; customer details are sufficient.
+
+## Creating a Static Account
+
+Static accounts require customer verification via BVN:
+
+```bash
+POST /v1/virtual-accounts
+```
+
+```json
+{
+  "type": "static",
+  "customer": {
+    "reference": "cust_12345",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
+    "phone": "08012345678",
+    "bvn": "12345678901"
+  }
+}
+```
+
+**Key fields:**
+- `reference` — Your unique identifier for this customer
+- `bvn` — Customer's Bank Verification Number (11 digits)
+
+The response includes the assigned bank account:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "uid": "va_550e8400-e29b-41d4",
+    "type": "static",
+    "status": "active",
+    "account_number": "0123456789",
+    "account_name": "Glyde/John Doe",
+    "bank_name": "Wema Bank"
+  }
+}
+```
+
+Store the `uid` to manage this account later.
+
+## Creating a Dynamic Account
+
+Dynamic accounts are simpler to create and don't require BVN:
+
+```json
+{
+  "type": "dynamic",
+  "customer": {
+    "reference": "cust_12345",
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com"
+  },
+  "expected_amount": 500000
+}
+```
+
+The `expected_amount` helps with reconciliation—you'll know if the customer paid the correct amount.
+
+## Managing Virtual Accounts
+
+### List All Accounts
+
+```bash
+GET /v1/virtual-accounts?status=active&per_page=20
+```
+
+Filter by `status` (`active`, `inactive`) and paginate results.
+
+### Get Account Details
+
+```bash
+GET /v1/virtual-accounts/{uid}
+```
+
+### View Account Transactions
+
+```bash
+GET /v1/virtual-accounts/{uid}/transactions
+```
+
+See all payments received on a specific virtual account.
+
+### Deactivate an Account
+
+```bash
+POST /v1/virtual-accounts/{uid}/deactivate
+```
+
+Deactivated accounts can no longer receive payments. Use this when a customer closes their account or you need to prevent further deposits.
+
+## Receiving Payments
+
+When someone transfers to a virtual account, you receive a webhook notification with full details including the sender's name and the customer reference you assigned.
+
+Display the account details to your customers so they can make transfers:
+- **Bank name** — Where to send the transfer
+- **Account number** — The 10-digit account number
+- **Account name** — What appears when they verify the account
+
+## Best Practices
+
+1. **Store customer references** — Use meaningful references that help you identify customers in webhook payloads
+
+2. **Communicate clearly** — Give customers clear instructions on how to transfer to their virtual account
+
+3. **Handle partial payments** — Decide how to handle payments that don't match expected amounts
+
+4. **Monitor for fraud** — Watch for unusual patterns like many small deposits or deposits from unexpected sources
+
+5. **Deactivate unused accounts** — Clean up accounts for customers who are no longer active

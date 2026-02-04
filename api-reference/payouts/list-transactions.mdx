@@ -1,5 +1,165 @@
 ---
 title: 'List Transactions'
+description: 'Retrieve a paginated list of your transactions'
 ---
 
-The **List Transactions** API endpoint allows you to retrieve a list of transactions that have been processed by Glyde. This endpoint is useful for fetching transaction details, such as the transaction reference, amount, status, and other relevant information.
+The List Transactions endpoint returns a paginated list of all transactions in your account, including both collections (payins) and disbursements (payouts).
+
+## Endpoint
+
+```
+GET /v1/transactions
+```
+
+## Query Parameters
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `perPage` | integer | No | 10 | Number of transactions per page (min: 10, max: 50) |
+
+## Example Request
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.useglyde.co/v1/transactions?perPage=25" \
+  -H "Authorization: Bearer sk_live_your_secret_key" \
+  -H "Content-Type: application/json"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const response = await axios.get('https://api.useglyde.co/v1/transactions', {
+  params: {
+    perPage: 25
+  },
+  headers: {
+    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Content-Type': 'application/json'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+params = {
+    'perPage': 25
+}
+
+headers = {
+    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    'https://api.useglyde.co/v1/transactions',
+    params=params,
+    headers=headers
+)
+
+print(response.json())
+```
+
+```php PHP
+<?php
+$curl = curl_init();
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://api.useglyde.co/v1/transactions?perPage=25',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk_live_your_secret_key',
+        'Content-Type: application/json'
+    ],
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+$data = json_decode($response, true);
+print_r($data);
+```
+</CodeGroup>
+
+## Response
+
+```json Success (200)
+{
+  "status": "success",
+  "message": "Transactions retrieved successfully",
+  "data": {
+    "transactions": [
+      {
+        "reference": "glyde_ref_xyz123",
+        "merchant_reference": "your_ref_abc123",
+        "type": "debit",
+        "amount": 200000,
+        "fee": 2500,
+        "status": "successful",
+        "created_at": "2025-03-01T21:20:54.000000Z"
+      },
+      {
+        "reference": "glyde_ref_abc456",
+        "merchant_reference": "your_ref_def456",
+        "type": "credit",
+        "amount": 500000,
+        "fee": 7500,
+        "status": "successful",
+        "created_at": "2025-03-01T18:15:30.000000Z"
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "per_page": 25,
+      "total": 150,
+      "total_pages": 6
+    }
+  },
+  "errors": null
+}
+```
+
+## Response Fields
+
+### Transaction Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `reference` | string | Glyde's unique reference for the transaction |
+| `merchant_reference` | string | Your provided reference |
+| `type` | string | Transaction type: `credit` (collection) or `debit` (transfer) |
+| `amount` | integer | Transaction amount in smallest currency unit |
+| `fee` | integer | Fee charged for the transaction |
+| `status` | string | Transaction status: `pending`, `successful`, or `failed` |
+| `created_at` | string | Timestamp when the transaction was created |
+
+### Pagination Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `current_page` | integer | Current page number |
+| `per_page` | integer | Number of items per page |
+| `total` | integer | Total number of transactions |
+| `total_pages` | integer | Total number of pages |
+
+## Transaction Types
+
+| Type | Description |
+|------|-------------|
+| `credit` | Money received (collections/payins) |
+| `debit` | Money sent (transfers/payouts) |
+
+## Filtering Tips
+
+To filter transactions effectively:
+
+1. Use pagination to browse through large datasets
+2. Fetch individual transaction details using the [Fetch Transaction](/api-reference/payouts/fetch-transaction) endpoint
+3. Use your `merchant_reference` to track specific transactions in your system
+
+<Info>
+  For real-time transaction updates, set up [webhooks](/api-reference/webhooks) instead of polling this endpoint.
+</Info>

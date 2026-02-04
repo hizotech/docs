@@ -1,5 +1,123 @@
 ---
-title: 'Resolve account name'
+title: 'Verify Account'
+description: 'Validate bank account details before sending money'
 ---
 
-The **Resolve Account Name** API endpoint resolves the account name associated with a bank account number. This endpoint is useful for verifying the account name before initiating a payout.
+Account verification (also called account enquiry or name lookup) confirms that a bank account exists and returns the account holder's name. This is an essential step before initiating any transfer.
+
+## Why Verify Accounts?
+
+Verifying accounts before transfers:
+
+- **Prevents errors** — Catches typos in account numbers before money is sent
+- **Confirms identity** — Shows the recipient's name for user confirmation
+- **Reduces disputes** — Users can verify they're sending to the right person
+- **Saves costs** — Failed transfers due to invalid accounts still incur fees
+
+<Tip>
+  Always verify accounts and show the account holder's name to your user before initiating a transfer. This simple step prevents most transfer errors.
+</Tip>
+
+## How It Works
+
+Send the account number and bank code, and Glyde returns the account holder's name:
+
+```bash
+GET /v1/account-enquiry?account_number=0264341458&bank_code=058
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `account_number` | The 10-digit bank account number |
+| `bank_code` | The bank's unique code (from `/v1/banks`) |
+
+### Successful Response
+
+```json
+{
+  "status": "success",
+  "message": "Account retrieved",
+  "data": {
+    "bank_name": "GTBank",
+    "account_name": "John Doe",
+    "account_number": "0264341458"
+  }
+}
+```
+
+### Failed Verification
+
+If the account doesn't exist or details are incorrect:
+
+```json
+{
+  "status": "failed",
+  "message": "Account name enquiry failed"
+}
+```
+
+## Getting Bank Codes
+
+Bank codes are required for verification. Fetch the list of supported banks:
+
+```bash
+GET /v1/banks
+```
+
+```json
+{
+  "status": "success",
+  "data": [
+    { "name": "Access Bank", "code": "044" },
+    { "name": "First Bank", "code": "011" },
+    { "name": "GTBank", "code": "058" },
+    { "name": "UBA", "code": "033" },
+    { "name": "Zenith Bank", "code": "057" }
+  ]
+}
+```
+
+Cache this list in your application—it rarely changes. Let users search or select from a dropdown rather than typing bank names.
+
+## Integration Pattern
+
+Here's the recommended flow for a "send money" feature:
+
+<Steps>
+  <Step title="User Enters Details">
+    Collect the account number and bank (from a dropdown of supported banks).
+  </Step>
+  <Step title="Verify Account">
+    Call `/v1/account-enquiry` with the details.
+  </Step>
+  <Step title="Display Account Name">
+    Show the returned `account_name` and ask the user to confirm this is the intended recipient.
+  </Step>
+  <Step title="User Confirms">
+    Only proceed to transfer after explicit confirmation.
+  </Step>
+  <Step title="Initiate Transfer">
+    Call `/v1/transfer/initiate` with the verified details.
+  </Step>
+</Steps>
+
+## Common Issues
+
+### Invalid Account Number
+
+Account numbers in Nigeria are exactly 10 digits. If verification fails:
+- Check for typos or extra/missing digits
+- Confirm the account number with the recipient
+- Verify the correct bank is selected
+
+### Wrong Bank Selected
+
+An account number is only valid at one bank. If the user selects the wrong bank, verification will fail even if the account exists elsewhere.
+
+### Timeout or Network Error
+
+Bank verification involves real-time communication with banks. Occasionally, a bank's systems may be slow or unavailable. Implement retry logic with appropriate user feedback.
+
+## Rate Limits
+
+Account verification queries external bank systems and may be rate-limited. Avoid verifying the same account repeatedly in quick succession. Consider caching successful verifications briefly if users might retry the same details.

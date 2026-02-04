@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Glyde API Reference",
+  "name": "Glyde API",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -14,34 +14,28 @@
         "tab": "Documentation",
         "groups": [
           {
-            "group": "Introduction",
+            "group": "Getting Started",
             "pages": [
-              "api-reference/getting-started"
+              "api-reference/introduction",
+              "api-reference/getting-started",
+              "api-reference/authentication"
             ]
           },
           {
-            "group": "API Basics",
+            "group": "Core Concepts",
             "pages": [
-              "api-reference/authentication",
-              "api-reference/testing",
               "api-reference/webhooks",
               "api-reference/errors",
-              "api-reference/get-banks"
+              "api-reference/testing"
             ]
           },
           {
-            "group": "Payouts",
+            "group": "Guides",
             "pages": [
-              "api-reference/payouts/resolve-account-name",
+              "api-reference/payins/initialise-collection-request",
               "api-reference/payouts/initiate-transfer",
-              "api-reference/payouts/list-transactions",
-              "api-reference/payouts/fetch-transaction"
-            ]
-          },
-          {
-            "group": "Payins",
-            "pages": [
-              "api-reference/payins/initialise-collection-request"
+              "api-reference/payouts/resolve-account-name",
+              "api-reference/guides/virtual-accounts"
             ]
           }
         ]
@@ -50,39 +44,47 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "Intro",
+            "group": "Account",
             "pages": [
-              "api-reference/introduction",
-              "api-reference/api-getting-started"
+              "api-reference/account/resolve-account",
+              "api-reference/account/list-banks"
             ]
           },
           {
-            "group": "Payin",
+            "group": "Collection",
             "pages": [
-              "api-reference/collection/initialise-collection-request"
+              "api-reference/collection/initialize",
+              "api-reference/collection/bank-transfer",
+              "api-reference/collection/fetch"
             ]
           },
           {
-            "group": "Payout",
+            "group": "Transfers",
             "pages": [
-              "api-reference/endpoints/resolve-account-name",
-              "api-reference/transactions/initiate-transfer",
-              "api-reference/endpoints/list-transactions",
-              "api-reference/endpoints/fetch-transaction"
+              "api-reference/transfers/initiate"
             ]
           },
           {
-            "group": "Settlement",
+            "group": "Transactions",
             "pages": [
-              "api-reference/transactions/fetch-all-settlements",
-              "api-reference/transactions/get-settlement-details"
+              "api-reference/transactions/list",
+              "api-reference/transactions/fetch"
             ]
           },
           {
-            "group": "Miscellaneous",
+            "group": "Virtual Accounts",
             "pages": [
-              "api-reference/endpoints/get-list-of-banks",
-              "api-reference/endpoints/check-wallet-balance"
+              "api-reference/virtual-accounts/create",
+              "api-reference/virtual-accounts/list",
+              "api-reference/virtual-accounts/get",
+              "api-reference/virtual-accounts/deactivate",
+              "api-reference/virtual-accounts/transactions"
+            ]
+          },
+          {
+            "group": "Wallet",
+            "pages": [
+              "api-reference/wallet/balance"
             ]
           }
         ]
@@ -107,10 +109,11 @@
       "display": "interactive"
     },
     "mdx": {
-      "server": "https://api.useglyde.co/v1",
+      "server": "https://api.useglyde.co",
       "auth": {
         "method": "bearer"
       }
     }
-}
+  },
+  "openapi": "glyde.yaml"
 }

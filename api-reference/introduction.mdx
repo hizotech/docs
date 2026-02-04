@@ -1,19 +1,68 @@
 ---
 title: 'Introduction'
+description: 'Glyde API Overview'
 ---
 
-Welcome to the Glyde Public API, your gateway to seamless financial transactions. This API provides a set of robust and secure endpoints designed to help you initiate payments, manage collections, verify customer information, and perform various financial operations with ease.
+Glyde is a payment infrastructure API for accepting payments, sending money, and managing virtual accounts.
 
-With the Glyde API, you can:
-- Initiate collection requests to receive payments securely.
-- Verify customer details, including bank account information.
-- Check wallet balances and monitor transactions.
-- Initiate bank transfers for disbursements.
-- Retrieve a list of supported banks for seamless financial operations.
-- Manage settlements efficiently.
+## API Products
 
-<Note>
-  Glyde Environment 
-  - Live Base Url: https://api.useglyde.co/v1
-  - Sandbox Base Url: https://sandbox.useglyde.co/v1
-</Note>
+<CardGroup cols={2}>
+  <Card title="Collections" icon="money-bill-wave">
+    Accept payments via hosted checkout or bank transfer
+  </Card>
+  <Card title="Transfers" icon="paper-plane">
+    Send money to any Nigerian bank account
+  </Card>
+  <Card title="Virtual Accounts" icon="building-columns">
+    Create dedicated accounts for customers
+  </Card>
+  <Card title="Wallet" icon="wallet">
+    Check your balance and manage funds
+  </Card>
+</CardGroup>
+
+## Environments
+
+| Environment | Base URL |
+|-------------|----------|
+| Production | `https://api.useglyde.co/v1` |
+| Sandbox | `https://sandbox.useglyde.co/v1` |
+
+## Authentication
+
+All requests require Bearer token authentication:
+
+```
+Authorization: Bearer sk_live_your_secret_key
+```
+
+Sandbox keys are prefixed with `sk_sandbox_`.
+
+## Response Format
+
+```json
+{
+  "status": "success",
+  "message": "Description",
+  "data": { },
+  "errors": null
+}
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Getting Started" icon="rocket" href="/api-reference/getting-started">
+    Set up your integration
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Learn about API keys
+  </Card>
+  <Card title="Webhooks" icon="bell" href="/api-reference/webhooks">
+    Receive event notifications
+  </Card>
+  <Card title="Testing" icon="flask" href="/api-reference/testing">
+    Test with sandbox data
+  </Card>
+</CardGroup>

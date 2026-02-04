@@ -1,33 +1,96 @@
 ---
 title: 'Authentication'
-description: 'Learn how to authenticate your requests to Glyde APIs.'
+description: 'Secure your API requests with Bearer token authentication'
 ---
 
-There are two modes of operation on your Glyde account:
+All Glyde API requests must be authenticated using Bearer tokens. This ensures that only authorized applications can access your account and perform transactions.
 
-1. Sandbox/Test Mode: This mode does not require the use of real money and designed exclusively for testing purposes. You can simulate data to replicate real-world scenarios using our test cards and bank accounts without any financial impact. It lets you test and validate your integration before going live.
-2. Live Mode: This mode is the production environment where real money, real transactions, and real operations take place. It handles actual customer data and financial transactions. Only switch to this after you've tested your integrations thoroughly on test mode.
+## API Keys
 
-You can easily switch between Live and Test modes, by using the toggle button in the menu sidebar on your settings page. 
-When you switch between modes, we'll also switch the API keys shown. Test keys will always have _sandbox as prefix (for example, pk_sandbox_ce9c428809ef4fb6ee9bd5b8c9b49546f0735dd)
+Glyde provides different types of API keys for different purposes:
 
-# Get your API keys
-When you create a Glyde account, you will be given two kinds of API keys:
-1. Secret key: The most powerful type of key. It authorizes any action on your account, so it should never be exposed publicly.
-2. Public key: The key you'll use in "public" scenarios, like in front-end JavaScript code
+| Key Type | Prefix | Purpose |
+|----------|--------|---------|
+| **Live Secret Key** | `sk_live_` | Production transactions with real money |
+| **Sandbox Secret Key** | `sk_sandbox_` | Testing without processing real transactions |
+| **Public Key** | `pk_` | Client-side operations with limited access |
 
-Your API keys are very vital to making requests successfully to our servers. To get your API keys for Sandbox mode:
-1. Log into your Glyde account
-2. Navigate to settings
-3. Select API Configuration and copy your keys
+<Warning>
+  **Secret keys grant full access to your account.** Never expose them in client-side code, commit them to version control, or share them publicly. Store them securely as environment variables.
+</Warning>
 
-# Authorizing API calls
-All API calls on Glyde are protected by default. Any API requests made without proper authorization will result in the status code 401: Unauthenticated.
+## Getting Your Keys
 
-<Info>
-### Safeguard your API Key
-Your secret key can perform any actions on your Glyde account without restriction. It should be kept confidential and only stored on your servers, preferably as an environment variable.
-It should not be included in your Git repository or front-end JavaScript code.
-</Info>
+1. Log in to your dashboard at [dashboard.useglyde.co](https://dashboard.useglyde.co)
+2. Navigate to **Settings** → **API Configuration**
+3. Copy your keys for the appropriate environment
 
+Your dashboard displays both sandbox and live keys. Use sandbox keys during development and switch to live keys only when you're ready for production.
 
+## Making Authenticated Requests
+
+Include your secret key in the `Authorization` header of every API request:
+
+```
+Authorization: Bearer sk_live_your_secret_key
+```
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.useglyde.co/v1/banks" \
+  -H "Authorization: Bearer sk_live_your_secret_key"
+```
+
+```javascript Node.js
+const response = await fetch('https://api.useglyde.co/v1/banks', {
+  headers: {
+    'Authorization': 'Bearer sk_live_your_secret_key'
+  }
+});
+```
+
+```python Python
+import requests
+
+response = requests.get(
+    'https://api.useglyde.co/v1/banks',
+    headers={'Authorization': 'Bearer sk_live_your_secret_key'}
+)
+```
+</CodeGroup>
+
+## Authentication Errors
+
+If authentication fails, you'll receive a `401 Unauthorized` response:
+
+```json
+{
+  "status": "failed",
+  "message": "Unauthenticated"
+}
+```
+
+**Common causes:**
+- Missing `Authorization` header
+- Invalid or expired API key
+- Using a sandbox key against the production URL (or vice versa)
+- Malformed header (e.g., missing "Bearer" prefix)
+
+## Environments
+
+Each environment has its own base URL and requires matching API keys:
+
+| Mode | Base URL | Key Prefix |
+|------|----------|------------|
+| **Sandbox** | `https://sandbox.useglyde.co/v1` | `sk_sandbox_` |
+| **Production** | `https://api.useglyde.co/v1` | `sk_live_` |
+
+Requests to production with sandbox keys (or vice versa) will fail authentication.
+
+## Security Best Practices
+
+1. **Use environment variables** — Store keys in environment variables, not in code
+2. **Rotate keys periodically** — Regenerate keys if you suspect they've been compromised
+3. **Separate environments** — Use different keys for development, staging, and production
+4. **Server-side only** — Make API calls from your backend, never from browsers or mobile apps
+5. **Monitor usage** — Review your API logs in the dashboard for unusual activity

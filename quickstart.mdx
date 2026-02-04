@@ -1,97 +1,3235 @@
----
-title: 'Quickstart'
-description: 'Start building awesome documentation in under 5 minutes'
----
-
-## Setup your development
-
-Learn how to update your docs locally and deploy them to the public.
-
-### Edit and preview
-
-<AccordionGroup>
-  <Accordion icon="github" title="Clone your docs locally">
-    During the onboarding process, we created a repository on your Github with
-    your docs content. You can find this repository on our
-    [dashboard](https://dashboard.mintlify.com). To clone the repository
-    locally, follow these
-    [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-    in your terminal.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Preview changes">
-    Previewing helps you make sure your changes look as intended. We built a
-    command line interface to render these changes locally. 
-    1. Install the
-    [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the
-    documentation changes locally with this command: ``` npm i -g mintlify ```
-    2. Run the following command at the root of your documentation (where
-    `docs.json` is): ``` mintlify dev ```
-    <Note>
-      If you’re currently using the legacy ```mint.json``` configuration file, please update the Mintlify CLI:
-
-
-      ```npm i -g mintlify@latest```
-      And run the new upgrade command in your docs repository:
-
-      ```mintlify upgrade```
-      You should now be using the new ```docs.json``` configuration file. Feel free to delete the ```mint.json``` file from your repository.
-    </Note>
-  </Accordion>
-</AccordionGroup>
-
-### Deploy your changes
-
-<AccordionGroup>
-
-<Accordion icon="message-bot" title="Install our Github app">
-  Our Github app automatically deploys your changes to your docs site, so you
-  don't need to manage deployments yourself. You can find the link to install on
-  your [dashboard](https://dashboard.mintlify.com). Once the bot has been
-  successfully installed, there should be a check mark next to the commit hash
-  of the repo.
-</Accordion>
-<Accordion icon="rocket" title="Push your changes">
-  [Commit and push your changes to
-  Git](https://docs.github.com/en/get-started/using-git/pushing-commits-to-a-remote-repository#about-git-push)
-  for your changes to update in your docs site. If you push and don't see that
-  the Github app successfully deployed your changes, you can also manually
-  update your docs through our [dashboard](https://dashboard.mintlify.com).
-</Accordion>
-
-</AccordionGroup>
-
-## Update your docs
-
-Add content directly in your files with MDX syntax and React components. You can use any of our components, or even build your own.
-
-<CardGroup>
-
-<Card title="Add Content With MDX" icon="file" href="/essentials/markdown">
-  Add content to your docs with MDX syntax.
-</Card>
-
-<Card
-  title="Add Code Blocks"
-  icon="square-code"
-  href="/essentials/code"
->
-  Add code directly to your docs with syntax highlighting.
-</Card>
-
-<Card
-  title="Add Images"
-  icon="image"
-  href="/essentials/images"
->
-  Add images to your docs to make them more engaging.
-</Card>
-
-<Card
-  title="Add Custom Components"
-  icon="puzzle-piece"
-  href="/essentials/reusable-snippets"
->
-  Add templates to your docs to make them more reusable.
-</Card>
-
-</CardGroup>
+openapi: 3.0.3
+info:
+  title: 'Glyde Public Api <> Local'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: api.glydeapibackendstaging.test
+paths:
+  /v1/account-enquiry:
+    get:
+      summary: 'Resolve Account Name'
+      operationId: resolveAccountName
+      description: "Verify a bank account before initiating a transfer. Returns the account holder's name\nfor the given account number and bank code. Use this to confirm recipient details\nand prevent failed transfers."
+      parameters:
+        -
+          in: query
+          name: account_number
+          description: 'The 10-digit account number of the recipient.'
+          example: '0264341458'
+          required: true
+          schema:
+            type: string
+            description: 'The 10-digit account number of the recipient.'
+            example: '0264341458'
+            nullable: false
+        -
+          in: query
+          name: bank_code
+          description: "The bank code of the recipient's bank. Use the /banks endpoint to get valid codes."
+          example: '058'
+          required: true
+          schema:
+            type: string
+            description: "The bank code of the recipient's bank. Use the /banks endpoint to get valid codes."
+            example: '058'
+            nullable: false
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Account retrieved'
+                  data:
+                    bank_name: GTBank
+                    account_name: 'John Doe'
+                    account_number: '0264341458'
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Account retrieved'
+                  data:
+                    type: object
+                    properties:
+                      bank_name:
+                        type: string
+                        example: GTBank
+                      account_name:
+                        type: string
+                        example: 'John Doe'
+                      account_number:
+                        type: string
+                        example: '0264341458'
+                  errors:
+                    type: string
+                    example: null
+        400:
+          description: 'Account enquiry failed'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'Account name enquiry failed'
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'Account name enquiry failed'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Missing required fields'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        account_number:
+                          - 'The account number field is required.'
+                        bank_code:
+                          - 'The bank code field is required.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          account_number:
+                            type: array
+                            example:
+                              - 'The account number field is required.'
+                            items:
+                              type: string
+                          bank_code:
+                            type: array
+                            example:
+                              - 'The bank code field is required.'
+                            items:
+                              type: string
+                  -
+                    description: 'Invalid account number format'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        account_number:
+                          - 'The account number must be 10 digits.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          account_number:
+                            type: array
+                            example:
+                              - 'The account number must be 10 digits.'
+                            items:
+                              type: string
+                  -
+                    description: 'Invalid bank code'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        bank_code:
+                          - 'The selected bank code is invalid.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          bank_code:
+                            type: array
+                            example:
+                              - 'The selected bank code is invalid.'
+                            items:
+                              type: string
+      tags:
+        - Account
+  /v1/banks:
+    get:
+      summary: 'List Banks'
+      operationId: listBanks
+      description: "Retrieve all active banks supported for transfers. Use the bank codes from this\nresponse when initiating transfers or resolving account names."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: success
+                  data:
+                    -
+                      name: 'Access Bank'
+                      code: '044'
+                    -
+                      name: GTBank
+                      code: '058'
+                    -
+                      name: 'First Bank of Nigeria'
+                      code: '011'
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: success
+                  data:
+                    type: array
+                    example:
+                      -
+                        name: 'Access Bank'
+                        code: '044'
+                      -
+                        name: GTBank
+                        code: '058'
+                      -
+                        name: 'First Bank of Nigeria'
+                        code: '011'
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: 'Access Bank'
+                        code:
+                          type: string
+                          example: '044'
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Account
+  /v1/collection/initialise:
+    post:
+      summary: 'Initialize Collection Request'
+      operationId: initializeCollectionRequest
+      description: "Create a new collection request that generates a hosted payment page URL. Redirect your\ncustomers to this URL to complete their payment via card or bank transfer.\nThe payment link expires after 15 minutes."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Collection Request created successfully'
+                  data:
+                    url: 'https://pay.useglyde.io/f369f561-aaa4-4701-aeb1-ce79f438efc1'
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Collection Request created successfully'
+                  data:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        example: 'https://pay.useglyde.io/f369f561-aaa4-4701-aeb1-ce79f438efc1'
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Missing required fields'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        currency:
+                          - 'A valid currency iso is required.'
+                        reference:
+                          - 'The reference field is required.'
+                        amount:
+                          - 'The amount field is required.'
+                        customer.name:
+                          - 'The customer.name field is required.'
+                        customer.email:
+                          - 'The customer.email field is required.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          currency:
+                            type: array
+                            example:
+                              - 'A valid currency iso is required.'
+                            items:
+                              type: string
+                          reference:
+                            type: array
+                            example:
+                              - 'The reference field is required.'
+                            items:
+                              type: string
+                          amount:
+                            type: array
+                            example:
+                              - 'The amount field is required.'
+                            items:
+                              type: string
+                          customer.name:
+                            type: array
+                            example:
+                              - 'The customer.name field is required.'
+                            items:
+                              type: string
+                          customer.email:
+                            type: array
+                            example:
+                              - 'The customer.email field is required.'
+                            items:
+                              type: string
+                  -
+                    description: 'Duplicate reference'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        reference:
+                          - 'Duplicate reference provided.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          reference:
+                            type: array
+                            example:
+                              - 'Duplicate reference provided.'
+                            items:
+                              type: string
+                  -
+                    description: 'Invalid currency'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Invalid currency provided.'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Invalid currency provided.'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Amount too low'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        amount:
+                          - 'The amount must be at least 100.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          amount:
+                            type: array
+                            example:
+                              - 'The amount must be at least 100.'
+                            items:
+                              type: string
+                  -
+                    description: 'Reference too short'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        reference:
+                          - 'The reference must be at least 8 characters.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          reference:
+                            type: array
+                            example:
+                              - 'The reference must be at least 8 characters.'
+                            items:
+                              type: string
+        500:
+          description: 'Server error'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'An error occurred. Failed to create collection request.'
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'An error occurred. Failed to create collection request.'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  description: 'The ISO currency code.'
+                  example: NGN
+                  nullable: false
+                reference:
+                  type: string
+                  description: 'Your unique reference for this collection. Must be 8-255 characters.'
+                  example: order_12345678
+                  nullable: false
+                amount:
+                  type: integer
+                  description: 'The amount to collect in the smallest currency unit (kobo). Minimum 100.'
+                  example: 10000
+                  nullable: false
+                customer:
+                  type: object
+                  description: 'Customer details object.'
+                  example: []
+                  nullable: false
+                  properties:
+                    first_name:
+                      type: string
+                      description: 'The first name of the customer. Maximum 255 characters. Must not be greater than 255 characters.'
+                      example: a
+                      nullable: false
+                    last_name:
+                      type: string
+                      description: 'The last name of the customer. Maximum 255 characters. Must not be greater than 255 characters.'
+                      example: c
+                      nullable: false
+                    email:
+                      type: string
+                      description: 'The email address of the customer.'
+                      example: john.doe@example.com
+                      nullable: false
+                    phone:
+                      type: string
+                      description: 'The phone number of the customer.'
+                      example: '08012345678'
+                      nullable: true
+                    name:
+                      type: string
+                      description: 'The full name of the paying customer.'
+                      example: 'John Doe'
+                      nullable: false
+                  required:
+                    - first_name
+                    - last_name
+                    - email
+                    - name
+                channels:
+                  type: array
+                  description: 'Available payment channels. Values: card_payment, bank_transfer.'
+                  example:
+                    - card_payment
+                    - bank_transfer
+                  items:
+                    type: string
+                default_channel:
+                  type: string
+                  description: 'The default payment channel to show first.'
+                  example: card_payment
+                  nullable: true
+                meta:
+                  type: object
+                  description: 'Additional metadata to attach to this collection.'
+                  example:
+                    order_id: '123'
+                    product: 'Premium Plan'
+                  nullable: true
+                  properties: {  }
+              required:
+                - currency
+                - reference
+                - amount
+                - customer
+  /v1/collection/bank-transfer:
+    post:
+      summary: 'Create Bank Transfer Collection'
+      operationId: createBankTransferCollection
+      description: "Create a collection request and generate a virtual bank account for receiving payment.\nThe customer can transfer to this account to complete payment. The virtual account\nexpires after 15 minutes."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Collection request created with virtual account'
+                  data:
+                    reference: order_12345678
+                    account_number: '1234567890'
+                    account_name: Checkout-MyBusiness
+                    bank_name: 'Fidelity Bank'
+                    amount: 10050
+                    fee: 50
+                    currency: NGN
+                    expires_at: '2025-01-19T12:30:00.000000Z'
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Collection request created with virtual account'
+                  data:
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: order_12345678
+                      account_number:
+                        type: string
+                        example: '1234567890'
+                      account_name:
+                        type: string
+                        example: Checkout-MyBusiness
+                      bank_name:
+                        type: string
+                        example: 'Fidelity Bank'
+                      amount:
+                        type: integer
+                        example: 10050
+                      fee:
+                        type: integer
+                        example: 50
+                      currency:
+                        type: string
+                        example: NGN
+                      expires_at:
+                        type: string
+                        example: '2025-01-19T12:30:00.000000Z'
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Missing required fields'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        currency:
+                          - 'A valid currency ISO is required.'
+                        reference:
+                          - 'A unique reference is required.'
+                        amount:
+                          - 'The amount is required.'
+                        customer_name:
+                          - 'The customer name is required.'
+                        customer_email:
+                          - 'The customer email is required.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          currency:
+                            type: array
+                            example:
+                              - 'A valid currency ISO is required.'
+                            items:
+                              type: string
+                          reference:
+                            type: array
+                            example:
+                              - 'A unique reference is required.'
+                            items:
+                              type: string
+                          amount:
+                            type: array
+                            example:
+                              - 'The amount is required.'
+                            items:
+                              type: string
+                          customer_name:
+                            type: array
+                            example:
+                              - 'The customer name is required.'
+                            items:
+                              type: string
+                          customer_email:
+                            type: array
+                            example:
+                              - 'The customer email is required.'
+                            items:
+                              type: string
+                  -
+                    description: 'Duplicate reference'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        reference:
+                          - 'Duplicate reference provided.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          reference:
+                            type: array
+                            example:
+                              - 'Duplicate reference provided.'
+                            items:
+                              type: string
+                  -
+                    description: 'Invalid currency'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Invalid currency provided.'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Invalid currency provided.'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Amount too low'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        amount:
+                          - 'The minimum amount is 100.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          amount:
+                            type: array
+                            example:
+                              - 'The minimum amount is 100.'
+                            items:
+                              type: string
+                  -
+                    description: 'Reference too short'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        reference:
+                          - 'The reference must be at least 8 characters.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          reference:
+                            type: array
+                            example:
+                              - 'The reference must be at least 8 characters.'
+                            items:
+                              type: string
+                  -
+                    description: 'Invalid email'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        customer_email:
+                          - 'Please provide a valid email address.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          customer_email:
+                            type: array
+                            example:
+                              - 'Please provide a valid email address.'
+                            items:
+                              type: string
+        500:
+          description: 'Server error'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'An error occurred. Failed to create collection request.'
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'An error occurred. Failed to create collection request.'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Collection
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                currency:
+                  type: string
+                  description: 'The ISO currency code.'
+                  example: NGN
+                  nullable: false
+                reference:
+                  type: string
+                  description: 'Your unique reference for this collection. Must be 8-255 characters.'
+                  example: order_12345678
+                  nullable: false
+                amount:
+                  type: integer
+                  description: 'The amount to collect in the smallest currency unit (kobo). Minimum 100.'
+                  example: 10000
+                  nullable: false
+                customer:
+                  type: object
+                  description: 'Customer information object containing first_name, last_name, and email.'
+                  example: []
+                  nullable: false
+                  properties:
+                    first_name:
+                      type: string
+                      description: 'The first name of the customer making the payment. Must not be greater than 255 characters.'
+                      example: ftznbsycigy
+                      nullable: false
+                    last_name:
+                      type: string
+                      description: 'The last name of the customer making the payment. Must not be greater than 255 characters.'
+                      example: pxnjxxmutezeuclu
+                      nullable: false
+                    email:
+                      type: string
+                      description: 'The email address of the customer. Must be a valid email address. Must not be greater than 255 characters.'
+                      example: xzavier.osinski@example.com
+                      nullable: false
+                  required:
+                    - first_name
+                    - last_name
+                    - email
+                meta:
+                  type: object
+                  description: 'Additional metadata to attach to this collection.'
+                  example:
+                    order_id: '123'
+                    product: 'Premium Plan'
+                  nullable: true
+                  properties: {  }
+                customer_name:
+                  type: string
+                  description: 'The full name of the paying customer.'
+                  example: 'John Doe'
+                  nullable: false
+                customer_email:
+                  type: string
+                  description: 'The email address of the customer.'
+                  example: john.doe@example.com
+                  nullable: false
+                customer_phone:
+                  type: string
+                  description: 'The phone number of the customer.'
+                  example: '08012345678'
+                  nullable: false
+              required:
+                - currency
+                - reference
+                - amount
+                - customer
+                - customer_name
+                - customer_email
+  '/v1/collection/{reference}':
+    get:
+      summary: 'Fetch Collection Transaction'
+      operationId: fetchCollectionTransaction
+      description: "Retrieve the transaction associated with a collection request using the collection's\nunique identifier. Returns the transaction status, amount, fee, and other details."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Transaction retrieved'
+                  data:
+                    reference: txn_abc123xyz
+                    type: credit
+                    amount: 10000
+                    fee: '150'
+                    status: successful
+                    narration: 'Card payment collection'
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Transaction retrieved'
+                  data:
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: txn_abc123xyz
+                      type:
+                        type: string
+                        example: credit
+                      amount:
+                        type: integer
+                        example: 10000
+                      fee:
+                        type: string
+                        example: '150'
+                      status:
+                        type: string
+                        example: successful
+                      narration:
+                        type: string
+                        example: 'Card payment collection'
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        404:
+          description: 'Transaction not found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'Transaction not found'
+                  data: null
+                  errors: []
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'Transaction not found'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: array
+                    example: []
+      tags:
+        - Collection
+    parameters:
+      -
+        in: path
+        name: reference
+        description: ''
+        example: dolorem
+        required: true
+        schema:
+          type: string
+      -
+        in: path
+        name: uid
+        description: 'The unique identifier of the collection request.'
+        example: f369f561-aaa4-4701-aeb1-ce79f438efc1
+        required: true
+        schema:
+          type: string
+  /v1/settlement:
+    get:
+      summary: 'Fetch all settlements'
+      operationId: fetchAllSettlements
+      description: ''
+      parameters:
+        -
+          in: query
+          name: per_page
+          description: 'records per page'
+          example: 16
+          required: true
+          schema:
+            type: integer
+            description: 'records per page'
+            example: 16
+            nullable: false
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Authorization Header not present in request'
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: 'Authorization Header not present in request'
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Transactions
+  '/v1/settlement/{id}':
+    get:
+      summary: 'Get settlement details'
+      operationId: getSettlementDetails
+      description: ''
+      parameters: []
+      responses:
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Authorization Header not present in request'
+                  errors: null
+                properties:
+                  message:
+                    type: string
+                    example: 'Authorization Header not present in request'
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Transactions
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the settlement.'
+        example: voluptas
+        required: true
+        schema:
+          type: string
+  /v1/transactions:
+    get:
+      summary: 'List Transactions'
+      operationId: listTransactions
+      description: "Retrieve a paginated list of all transactions for your business wallet. Transactions are\nreturned in descending order (newest first) and include transfer fees."
+      parameters:
+        -
+          in: query
+          name: perPage
+          description: 'The number of transactions per page. Min: 10, Max: 50.'
+          example: 25
+          required: false
+          schema:
+            type: integer
+            description: 'The number of transactions per page. Min: 10, Max: 50.'
+            example: 25
+            nullable: false
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Transactions retrieved successfully'
+                  data:
+                    transactions:
+                      current_page: 1
+                      data:
+                        -
+                          reference: 550e8400-e29b-41d4-a716-446655440000
+                          merchant_reference: txn_abc123xyz
+                          type: debit
+                          amount: 5000
+                          status: successful
+                          fee: 25
+                          created_at: '2025-01-19T10:30:00.000000Z'
+                        -
+                          reference: 660e8400-e29b-41d4-a716-446655440001
+                          merchant_reference: txn_def456abc
+                          type: credit
+                          amount: 10000
+                          status: successful
+                          fee: 0
+                          created_at: '2025-01-18T14:20:00.000000Z'
+                      first_page_url: 'https://api.useglyde.io/v1/transactions?page=1'
+                      from: 1
+                      last_page: 5
+                      last_page_url: 'https://api.useglyde.io/v1/transactions?page=5'
+                      next_page_url: 'https://api.useglyde.io/v1/transactions?page=2'
+                      path: 'https://api.useglyde.io/v1/transactions'
+                      per_page: 25
+                      prev_page_url: null
+                      to: 25
+                      total: 120
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Transactions retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      transactions:
+                        type: object
+                        properties:
+                          current_page:
+                            type: integer
+                            example: 1
+                          data:
+                            type: array
+                            example:
+                              -
+                                reference: 550e8400-e29b-41d4-a716-446655440000
+                                merchant_reference: txn_abc123xyz
+                                type: debit
+                                amount: 5000
+                                status: successful
+                                fee: 25
+                                created_at: '2025-01-19T10:30:00.000000Z'
+                              -
+                                reference: 660e8400-e29b-41d4-a716-446655440001
+                                merchant_reference: txn_def456abc
+                                type: credit
+                                amount: 10000
+                                status: successful
+                                fee: 0
+                                created_at: '2025-01-18T14:20:00.000000Z'
+                            items:
+                              type: object
+                              properties:
+                                reference:
+                                  type: string
+                                  example: 550e8400-e29b-41d4-a716-446655440000
+                                merchant_reference:
+                                  type: string
+                                  example: txn_abc123xyz
+                                type:
+                                  type: string
+                                  example: debit
+                                amount:
+                                  type: integer
+                                  example: 5000
+                                status:
+                                  type: string
+                                  example: successful
+                                fee:
+                                  type: integer
+                                  example: 25
+                                created_at:
+                                  type: string
+                                  example: '2025-01-19T10:30:00.000000Z'
+                          first_page_url:
+                            type: string
+                            example: 'https://api.useglyde.io/v1/transactions?page=1'
+                          from:
+                            type: integer
+                            example: 1
+                          last_page:
+                            type: integer
+                            example: 5
+                          last_page_url:
+                            type: string
+                            example: 'https://api.useglyde.io/v1/transactions?page=5'
+                          next_page_url:
+                            type: string
+                            example: 'https://api.useglyde.io/v1/transactions?page=2'
+                          path:
+                            type: string
+                            example: 'https://api.useglyde.io/v1/transactions'
+                          per_page:
+                            type: integer
+                            example: 25
+                          prev_page_url:
+                            type: string
+                            example: null
+                          to:
+                            type: integer
+                            example: 25
+                          total:
+                            type: integer
+                            example: 120
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        422:
+          description: 'Invalid perPage value'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'Validation error'
+                  data: null
+                  errors:
+                    perPage:
+                      - 'The perPage parameter cannot be greater than 50.'
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'Validation error'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: object
+                    properties:
+                      perPage:
+                        type: array
+                        example:
+                          - 'The perPage parameter cannot be greater than 50.'
+                        items:
+                          type: string
+      tags:
+        - Transactions
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                perPage:
+                  type: integer
+                  description: 'Must not be greater than 50. Must be at least 10.'
+                  example: 69
+                  nullable: true
+  '/v1/transaction/{reference}':
+    get:
+      summary: 'Fetch Transaction'
+      operationId: fetchTransaction
+      description: "Retrieve details of a specific transaction using your merchant reference. Returns the\ntransaction status, amount, fee, and other details."
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: Success
+                    type: object
+                    example:
+                      status: success
+                      message: 'Transaction retrieved'
+                      data:
+                        reference: txn_abc123xyz
+                        type: debit
+                        amount: 5000
+                        fee: '25'
+                        status: successful
+                        narration: 'Transfer to John Doe - GTBank'
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      message:
+                        type: string
+                        example: 'Transaction retrieved'
+                      data:
+                        type: object
+                        properties:
+                          reference:
+                            type: string
+                            example: txn_abc123xyz
+                          type:
+                            type: string
+                            example: debit
+                          amount:
+                            type: integer
+                            example: 5000
+                          fee:
+                            type: string
+                            example: '25'
+                          status:
+                            type: string
+                            example: successful
+                          narration:
+                            type: string
+                            example: 'Transfer to John Doe - GTBank'
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Pending transaction'
+                    type: object
+                    example:
+                      status: success
+                      message: 'Transaction retrieved'
+                      data:
+                        reference: txn_abc123xyz
+                        type: debit
+                        amount: 5000
+                        fee: '25'
+                        status: pending
+                        narration: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      message:
+                        type: string
+                        example: 'Transaction retrieved'
+                      data:
+                        type: object
+                        properties:
+                          reference:
+                            type: string
+                            example: txn_abc123xyz
+                          type:
+                            type: string
+                            example: debit
+                          amount:
+                            type: integer
+                            example: 5000
+                          fee:
+                            type: string
+                            example: '25'
+                          status:
+                            type: string
+                            example: pending
+                          narration:
+                            type: string
+                            example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Failed transaction'
+                    type: object
+                    example:
+                      status: success
+                      message: 'Transaction retrieved'
+                      data:
+                        reference: txn_abc123xyz
+                        type: debit
+                        amount: 5000
+                        fee: '25'
+                        status: failed
+                        narration: 'Transfer failed - Invalid account'
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: success
+                      message:
+                        type: string
+                        example: 'Transaction retrieved'
+                      data:
+                        type: object
+                        properties:
+                          reference:
+                            type: string
+                            example: txn_abc123xyz
+                          type:
+                            type: string
+                            example: debit
+                          amount:
+                            type: integer
+                            example: 5000
+                          fee:
+                            type: string
+                            example: '25'
+                          status:
+                            type: string
+                            example: failed
+                          narration:
+                            type: string
+                            example: 'Transfer failed - Invalid account'
+                      errors:
+                        type: string
+                        example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        404:
+          description: 'Transaction not found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'Transaction not found'
+                  data: null
+                  errors: []
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'Transaction not found'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: array
+                    example: []
+      tags:
+        - Transactions
+    parameters:
+      -
+        in: path
+        name: reference
+        description: 'Your unique merchant reference for the transaction.'
+        example: txn_abc123xyz
+        required: true
+        schema:
+          type: string
+  /v1/transfer/initiate:
+    post:
+      summary: 'Initiate Transfer'
+      operationId: initiateTransfer
+      description: "Initiate a bank transfer to a recipient's account. The transfer is processed asynchronously\nand you will receive a webhook notification when the transfer is completed or fails.\nEnsure your webhook URL is configured before making transfers."
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Transaction initiated successfully'
+                  data:
+                    reference: 550e8400-e29b-41d4-a716-446655440000
+                    merchant_reference: txn_abc123xyz
+                    type: debit
+                    amount: 5000
+                    status: pending
+                    fee: 25
+                    created_at: '2025-01-19T10:30:00.000000Z'
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Transaction initiated successfully'
+                  data:
+                    type: object
+                    properties:
+                      reference:
+                        type: string
+                        example: 550e8400-e29b-41d4-a716-446655440000
+                      merchant_reference:
+                        type: string
+                        example: txn_abc123xyz
+                      type:
+                        type: string
+                        example: debit
+                      amount:
+                        type: integer
+                        example: 5000
+                      status:
+                        type: string
+                        example: pending
+                      fee:
+                        type: integer
+                        example: 25
+                      created_at:
+                        type: string
+                        example: '2025-01-19T10:30:00.000000Z'
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Missing required fields'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        amount:
+                          - 'The amount field is required.'
+                        bank_code:
+                          - 'The bank code field is required.'
+                        account_number:
+                          - 'The account number field is required.'
+                        reference:
+                          - 'The reference field is required.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          amount:
+                            type: array
+                            example:
+                              - 'The amount field is required.'
+                            items:
+                              type: string
+                          bank_code:
+                            type: array
+                            example:
+                              - 'The bank code field is required.'
+                            items:
+                              type: string
+                          account_number:
+                            type: array
+                            example:
+                              - 'The account number field is required.'
+                            items:
+                              type: string
+                          reference:
+                            type: array
+                            example:
+                              - 'The reference field is required.'
+                            items:
+                              type: string
+                  -
+                    description: 'Amount below minimum'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Transaction amount cannot be less than 200'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Transaction amount cannot be less than 200'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Amount exceeds maximum'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Transaction amount cannot be more than 100000000'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Transaction amount cannot be more than 100000000'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Daily limit exceeded'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'You have reached your daily transaction limit'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'You have reached your daily transaction limit'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Webhook URL not configured'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Webhook url for this business is not set'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Webhook url for this business is not set'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Duplicate reference'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Duplicate transaction reference'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Duplicate transaction reference'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Possible duplicate transaction'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Possible duplicate transaction'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Possible duplicate transaction'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Insufficient funds'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Insufficient funds, can not process this transfer.'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Insufficient funds, can not process this transfer.'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Invalid bank code'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Unrecognized bank code'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Unrecognized bank code'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Too many requests'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Too many transfers requests.'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Too many transfers requests.'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+        500:
+          description: 'Server error'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: 'Something went wrong on our end.'
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: 'Something went wrong on our end.'
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Transfers
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: 'The transfer amount in Naira. Must be within your configured min/max limits.'
+                  example: 5000
+                  nullable: false
+                bank_code:
+                  type: string
+                  description: "The recipient's bank code. Get valid codes from /banks endpoint."
+                  example: '058'
+                  nullable: false
+                account_number:
+                  type: string
+                  description: "The recipient's 10-digit account number."
+                  example: '0264341458'
+                  nullable: false
+                reference:
+                  type: string
+                  description: 'Your unique reference for this transaction. Used for idempotency and tracking.'
+                  example: txn_abc123xyz
+                  nullable: false
+              required:
+                - amount
+                - bank_code
+                - account_number
+                - reference
+  /v1/verification/bvn-check:
+    post:
+      summary: 'Verify BVN'
+      operationId: verifyBVN
+      description: "Verify a Bank Verification Number (BVN) against the provided first and last name.\nThis endpoint checks if the names match the BVN holder's registered names.\nA charge may apply depending on your business configuration."
+      parameters: []
+      responses:
+        200:
+          description: 'BVN verified successfully'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'BVN verified'
+                  data:
+                    first_name: John
+                    last_name: Doe
+                    middle_name: Michael
+                    date_of_birth: '1990-05-15'
+                    phone_number: '08012345678'
+                    gender: Male
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'BVN verified'
+                  data:
+                    type: object
+                    properties:
+                      first_name:
+                        type: string
+                        example: John
+                      last_name:
+                        type: string
+                        example: Doe
+                      middle_name:
+                        type: string
+                        example: Michael
+                      date_of_birth:
+                        type: string
+                        example: '1990-05-15'
+                      phone_number:
+                        type: string
+                        example: '08012345678'
+                      gender:
+                        type: string
+                        example: Male
+                  errors:
+                    type: string
+                    example: null
+        400:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Identity mismatch'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Identity mismatch error'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Identity mismatch error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: 'Verification failed'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'BVN verification failed'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'BVN verification failed'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+        401:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Insufficient funds for charge'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Insufficient funds'
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Insufficient funds'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+                  -
+                    description: Unauthenticated
+                    type: object
+                    example:
+                      status: failed
+                      message: Unauthenticated
+                      data: null
+                      errors: null
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: Unauthenticated
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: string
+                        example: null
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Missing required fields'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        first_name:
+                          - 'The first name field is required.'
+                        last_name:
+                          - 'The last name field is required.'
+                        bvn:
+                          - 'The bvn field is required.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          first_name:
+                            type: array
+                            example:
+                              - 'The first name field is required.'
+                            items:
+                              type: string
+                          last_name:
+                            type: array
+                            example:
+                              - 'The last name field is required.'
+                            items:
+                              type: string
+                          bvn:
+                            type: array
+                            example:
+                              - 'The bvn field is required.'
+                            items:
+                              type: string
+                  -
+                    description: 'Invalid BVN format'
+                    type: object
+                    example:
+                      status: failed
+                      message: 'Validation error'
+                      data: null
+                      errors:
+                        bvn:
+                          - 'The bvn must be 11 digits.'
+                    properties:
+                      status:
+                        type: string
+                        example: failed
+                      message:
+                        type: string
+                        example: 'Validation error'
+                      data:
+                        type: string
+                        example: null
+                      errors:
+                        type: object
+                        properties:
+                          bvn:
+                            type: array
+                            example:
+                              - 'The bvn must be 11 digits.'
+                            items:
+                              type: string
+      tags:
+        - Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                first_name:
+                  type: string
+                  description: 'The first name to verify against the BVN.'
+                  example: John
+                  nullable: false
+                last_name:
+                  type: string
+                  description: 'The last name to verify against the BVN.'
+                  example: Doe
+                  nullable: false
+                bvn:
+                  type: string
+                  description: 'The 11-digit Bank Verification Number.'
+                  example: '22345678901'
+                  nullable: false
+              required:
+                - first_name
+                - last_name
+                - bvn
+  /v1/virtual-accounts:
+    post:
+      summary: 'Create Virtual Account'
+      operationId: createVirtualAccount
+      description: "Creates a new merchant-issued virtual account for a customer.\nStatic accounts require BVN and are permanent. Dynamic accounts require expected amount and are single-use.\nBoth providers (KoraPay and Fidelity Bank) support both static and dynamic account types."
+      parameters: []
+      responses:
+        201:
+          description: 'Static Account Created'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Virtual account created successfully'
+                  data:
+                    uid: va_550e8400-e29b-41d4-a716-446655440000
+                    type: static
+                    status: active
+                    account_number: '0123456789'
+                    account_name: 'Glyde/John Doe'
+                    bank_name: 'Wema Bank'
+                    customer:
+                      reference: cust_12345
+                      first_name: John
+                      last_name: Doe
+                      email: john@example.com
+                    expected_amount: null
+                    funded_at: null
+                    expires_at: null
+                    created_at: '2026-01-15T10:00:00Z'
+                    meta:
+                      order_id: ORD-123
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Virtual account created successfully'
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                        example: va_550e8400-e29b-41d4-a716-446655440000
+                      type:
+                        type: string
+                        example: static
+                      status:
+                        type: string
+                        example: active
+                      account_number:
+                        type: string
+                        example: '0123456789'
+                      account_name:
+                        type: string
+                        example: 'Glyde/John Doe'
+                      bank_name:
+                        type: string
+                        example: 'Wema Bank'
+                      customer:
+                        type: object
+                        properties:
+                          reference:
+                            type: string
+                            example: cust_12345
+                          first_name:
+                            type: string
+                            example: John
+                          last_name:
+                            type: string
+                            example: Doe
+                          email:
+                            type: string
+                            example: john@example.com
+                      expected_amount:
+                        type: string
+                        example: null
+                      funded_at:
+                        type: string
+                        example: null
+                      expires_at:
+                        type: string
+                        example: null
+                      created_at:
+                        type: string
+                        example: '2026-01-15T10:00:00Z'
+                      meta:
+                        type: object
+                        properties:
+                          order_id:
+                            type: string
+                            example: ORD-123
+        422:
+          description: ''
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  -
+                    description: 'Validation Error'
+                    type: object
+                    example:
+                      status: error
+                      message: 'BVN is required for static virtual accounts.'
+                      errors:
+                        customer.bvn:
+                          - 'BVN is required for static virtual accounts.'
+                    properties:
+                      status:
+                        type: string
+                        example: error
+                      message:
+                        type: string
+                        example: 'BVN is required for static virtual accounts.'
+                      errors:
+                        type: object
+                        properties:
+                          customer.bvn:
+                            type: array
+                            example:
+                              - 'BVN is required for static virtual accounts.'
+                            items:
+                              type: string
+                  -
+                    description: 'Creation Failed'
+                    type: object
+                    example:
+                      status: error
+                      message: 'Failed to create virtual account with provider'
+                    properties:
+                      status:
+                        type: string
+                        example: error
+                      message:
+                        type: string
+                        example: 'Failed to create virtual account with provider'
+      tags:
+        - 'Virtual Accounts'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  description: 'Account type. Must be `static` or `dynamic`.'
+                  example: static
+                  nullable: false
+                customer:
+                  type: object
+                  description: 'Customer information object.'
+                  example: []
+                  nullable: false
+                  properties:
+                    reference:
+                      type: string
+                      description: 'Your unique customer identifier.'
+                      example: cust_12345
+                      nullable: false
+                    first_name:
+                      type: string
+                      description: "Customer's first name."
+                      example: John
+                      nullable: false
+                    last_name:
+                      type: string
+                      description: "Customer's last name."
+                      example: Doe
+                      nullable: false
+                    email:
+                      type: string
+                      description: "Customer's email address."
+                      example: john@example.com
+                      nullable: false
+                    phone:
+                      type: string
+                      description: "Customer's phone number."
+                      example: '08012345678'
+                      nullable: true
+                    bvn:
+                      type: string
+                      description: 'BVN (required for static accounts). Must be exactly 11 digits.'
+                      example: '12345678901'
+                      nullable: true
+                  required:
+                    - reference
+                    - first_name
+                    - last_name
+                    - email
+                expected_amount:
+                  type: integer
+                  description: 'Expected amount in kobo (required for dynamic accounts, min: 10000).'
+                  example: 500000
+                  nullable: true
+                meta:
+                  type: object
+                  description: 'Additional custom data.'
+                  example:
+                    order_id: ORD-123
+                  nullable: true
+                  properties: {  }
+              required:
+                - type
+                - customer
+    get:
+      summary: 'List Virtual Accounts'
+      operationId: listVirtualAccounts
+      description: 'Returns a paginated list of merchant-issued virtual accounts.'
+      parameters:
+        -
+          in: query
+          name: page
+          description: 'Page number.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number.'
+            example: 1
+            nullable: false
+        -
+          in: query
+          name: per_page
+          description: 'Items per page (max: 100).'
+          example: 15
+          required: false
+          schema:
+            type: integer
+            description: 'Items per page (max: 100).'
+            example: 15
+            nullable: false
+        -
+          in: query
+          name: account_type
+          description: 'Filter by account type. Must be `static` or `dynamic`.'
+          example: static
+          required: false
+          schema:
+            type: string
+            description: 'Filter by account type. Must be `static` or `dynamic`.'
+            example: static
+            nullable: false
+        -
+          in: query
+          name: status
+          description: 'Filter by status. Must be `active` or `inactive`.'
+          example: active
+          required: false
+          schema:
+            type: string
+            description: 'Filter by status. Must be `active` or `inactive`.'
+            example: active
+            nullable: false
+        -
+          in: query
+          name: customer_reference
+          description: 'Filter by customer reference.'
+          example: cust_12345
+          required: false
+          schema:
+            type: string
+            description: 'Filter by customer reference.'
+            example: cust_12345
+            nullable: false
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Virtual accounts retrieved successfully'
+                  data:
+                    -
+                      uid: va_550e8400-e29b-41d4-a716-446655440000
+                      type: static
+                      status: active
+                      account_number: '0123456789'
+                      account_name: 'Glyde/John Doe'
+                      bank_name: 'Wema Bank'
+                      customer_reference: cust_12345
+                      customer_name: 'John Doe'
+                      customer_email: john@example.com
+                      expected_amount: null
+                      funded_at: '2026-01-15T12:30:00Z'
+                      expires_at: null
+                      created_at: '2026-01-15T10:00:00Z'
+                      meta: null
+                  meta:
+                    current_page: 1
+                    per_page: 15
+                    total: 50
+                    last_page: 4
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Virtual accounts retrieved successfully'
+                  data:
+                    type: array
+                    example:
+                      -
+                        uid: va_550e8400-e29b-41d4-a716-446655440000
+                        type: static
+                        status: active
+                        account_number: '0123456789'
+                        account_name: 'Glyde/John Doe'
+                        bank_name: 'Wema Bank'
+                        customer_reference: cust_12345
+                        customer_name: 'John Doe'
+                        customer_email: john@example.com
+                        expected_amount: null
+                        funded_at: '2026-01-15T12:30:00Z'
+                        expires_at: null
+                        created_at: '2026-01-15T10:00:00Z'
+                        meta: null
+                    items:
+                      type: object
+                      properties:
+                        uid:
+                          type: string
+                          example: va_550e8400-e29b-41d4-a716-446655440000
+                        type:
+                          type: string
+                          example: static
+                        status:
+                          type: string
+                          example: active
+                        account_number:
+                          type: string
+                          example: '0123456789'
+                        account_name:
+                          type: string
+                          example: 'Glyde/John Doe'
+                        bank_name:
+                          type: string
+                          example: 'Wema Bank'
+                        customer_reference:
+                          type: string
+                          example: cust_12345
+                        customer_name:
+                          type: string
+                          example: 'John Doe'
+                        customer_email:
+                          type: string
+                          example: john@example.com
+                        expected_amount:
+                          type: string
+                          example: null
+                        funded_at:
+                          type: string
+                          example: '2026-01-15T12:30:00Z'
+                        expires_at:
+                          type: string
+                          example: null
+                        created_at:
+                          type: string
+                          example: '2026-01-15T10:00:00Z'
+                        meta:
+                          type: string
+                          example: null
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 15
+                      total:
+                        type: integer
+                        example: 50
+                      last_page:
+                        type: integer
+                        example: 4
+        422:
+          description: 'Invalid Filter'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'The selected account type is invalid.'
+                  errors:
+                    account_type:
+                      - 'The selected account type is invalid.'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'The selected account type is invalid.'
+                  errors:
+                    type: object
+                    properties:
+                      account_type:
+                        type: array
+                        example:
+                          - 'The selected account type is invalid.'
+                        items:
+                          type: string
+      tags:
+        - 'Virtual Accounts'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                account_type:
+                  type: string
+                  description: ''
+                  example: static
+                  nullable: true
+                  enum:
+                    - static
+                    - dynamic
+                status:
+                  type: string
+                  description: ''
+                  example: active
+                  nullable: true
+                  enum:
+                    - active
+                    - inactive
+                customer_reference:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: sgcjbcurqoivrjk
+                  nullable: true
+                per_page:
+                  type: integer
+                  description: 'Must be at least 1. Must not be greater than 100.'
+                  example: 14
+                  nullable: true
+  '/v1/virtual-accounts/{uid}':
+    get:
+      summary: 'Get Virtual Account'
+      operationId: getVirtualAccount
+      description: 'Returns details of a specific virtual account.'
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Virtual account retrieved successfully'
+                  data:
+                    uid: va_550e8400-e29b-41d4-a716-446655440000
+                    type: static
+                    status: active
+                    account_number: '0123456789'
+                    account_name: 'Glyde/John Doe'
+                    bank_name: 'Wema Bank'
+                    customer_reference: cust_12345
+                    customer_name: 'John Doe'
+                    customer_email: john@example.com
+                    expected_amount: null
+                    funded_at: '2026-01-15T12:30:00Z'
+                    expires_at: null
+                    created_at: '2026-01-15T10:00:00Z'
+                    meta:
+                      order_id: ORD-123
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Virtual account retrieved successfully'
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                        example: va_550e8400-e29b-41d4-a716-446655440000
+                      type:
+                        type: string
+                        example: static
+                      status:
+                        type: string
+                        example: active
+                      account_number:
+                        type: string
+                        example: '0123456789'
+                      account_name:
+                        type: string
+                        example: 'Glyde/John Doe'
+                      bank_name:
+                        type: string
+                        example: 'Wema Bank'
+                      customer_reference:
+                        type: string
+                        example: cust_12345
+                      customer_name:
+                        type: string
+                        example: 'John Doe'
+                      customer_email:
+                        type: string
+                        example: john@example.com
+                      expected_amount:
+                        type: string
+                        example: null
+                      funded_at:
+                        type: string
+                        example: '2026-01-15T12:30:00Z'
+                      expires_at:
+                        type: string
+                        example: null
+                      created_at:
+                        type: string
+                        example: '2026-01-15T10:00:00Z'
+                      meta:
+                        type: object
+                        properties:
+                          order_id:
+                            type: string
+                            example: ORD-123
+        404:
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'Virtual account not found'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Virtual account not found'
+      tags:
+        - 'Virtual Accounts'
+    parameters:
+      -
+        in: path
+        name: uid
+        description: 'The virtual account UID.'
+        example: va_550e8400-e29b-41d4-a716-446655440000
+        required: true
+        schema:
+          type: string
+  '/v1/virtual-accounts/{uid}/deactivate':
+    post:
+      summary: 'Deactivate Virtual Account'
+      operationId: deactivateVirtualAccount
+      description: 'Deactivates a virtual account, preventing further payments.'
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Virtual account deactivated successfully'
+                  data:
+                    uid: va_550e8400-e29b-41d4-a716-446655440000
+                    type: static
+                    status: inactive
+                    account_number: '0123456789'
+                    account_name: 'Glyde/John Doe'
+                    bank_name: 'Wema Bank'
+                    customer_reference: cust_12345
+                    customer_name: 'John Doe'
+                    customer_email: john@example.com
+                    expected_amount: null
+                    funded_at: '2026-01-15T12:30:00Z'
+                    expires_at: null
+                    created_at: '2026-01-15T10:00:00Z'
+                    meta: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Virtual account deactivated successfully'
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                        example: va_550e8400-e29b-41d4-a716-446655440000
+                      type:
+                        type: string
+                        example: static
+                      status:
+                        type: string
+                        example: inactive
+                      account_number:
+                        type: string
+                        example: '0123456789'
+                      account_name:
+                        type: string
+                        example: 'Glyde/John Doe'
+                      bank_name:
+                        type: string
+                        example: 'Wema Bank'
+                      customer_reference:
+                        type: string
+                        example: cust_12345
+                      customer_name:
+                        type: string
+                        example: 'John Doe'
+                      customer_email:
+                        type: string
+                        example: john@example.com
+                      expected_amount:
+                        type: string
+                        example: null
+                      funded_at:
+                        type: string
+                        example: '2026-01-15T12:30:00Z'
+                      expires_at:
+                        type: string
+                        example: null
+                      created_at:
+                        type: string
+                        example: '2026-01-15T10:00:00Z'
+                      meta:
+                        type: string
+                        example: null
+        404:
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'Virtual account not found'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Virtual account not found'
+        422:
+          description: 'Already Inactive'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'Virtual account is already inactive'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Virtual account is already inactive'
+      tags:
+        - 'Virtual Accounts'
+    parameters:
+      -
+        in: path
+        name: uid
+        description: 'The virtual account UID.'
+        example: va_550e8400-e29b-41d4-a716-446655440000
+        required: true
+        schema:
+          type: string
+  '/v1/virtual-accounts/{uid}/transactions':
+    get:
+      summary: 'List Virtual Account Transactions'
+      operationId: listVirtualAccountTransactions
+      description: 'Returns a paginated list of transactions for a specific virtual account.'
+      parameters:
+        -
+          in: query
+          name: page
+          description: 'Page number.'
+          example: 1
+          required: false
+          schema:
+            type: integer
+            description: 'Page number.'
+            example: 1
+            nullable: false
+        -
+          in: query
+          name: per_page
+          description: 'Items per page (max: 100).'
+          example: 15
+          required: false
+          schema:
+            type: integer
+            description: 'Items per page (max: 100).'
+            example: 15
+            nullable: false
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Virtual account transactions retrieved successfully'
+                  data:
+                    -
+                      uid: vat_123456
+                      amount: 500000
+                      currency: NGN
+                      session_id: '123456789012345678901234567890'
+                      sender_name: 'Jane Smith'
+                      sender_account_number: '0987654321'
+                      sender_bank_name: 'Access Bank'
+                      narration: 'Payment for invoice INV-456'
+                      created_at: '2026-01-15T12:30:00Z'
+                  meta:
+                    current_page: 1
+                    per_page: 15
+                    total: 5
+                    last_page: 1
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Virtual account transactions retrieved successfully'
+                  data:
+                    type: array
+                    example:
+                      -
+                        uid: vat_123456
+                        amount: 500000
+                        currency: NGN
+                        session_id: '123456789012345678901234567890'
+                        sender_name: 'Jane Smith'
+                        sender_account_number: '0987654321'
+                        sender_bank_name: 'Access Bank'
+                        narration: 'Payment for invoice INV-456'
+                        created_at: '2026-01-15T12:30:00Z'
+                    items:
+                      type: object
+                      properties:
+                        uid:
+                          type: string
+                          example: vat_123456
+                        amount:
+                          type: integer
+                          example: 500000
+                        currency:
+                          type: string
+                          example: NGN
+                        session_id:
+                          type: string
+                          example: '123456789012345678901234567890'
+                        sender_name:
+                          type: string
+                          example: 'Jane Smith'
+                        sender_account_number:
+                          type: string
+                          example: '0987654321'
+                        sender_bank_name:
+                          type: string
+                          example: 'Access Bank'
+                        narration:
+                          type: string
+                          example: 'Payment for invoice INV-456'
+                        created_at:
+                          type: string
+                          example: '2026-01-15T12:30:00Z'
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                        example: 1
+                      per_page:
+                        type: integer
+                        example: 15
+                      total:
+                        type: integer
+                        example: 5
+                      last_page:
+                        type: integer
+                        example: 1
+        404:
+          description: 'Not Found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: error
+                  message: 'Virtual account not found'
+                properties:
+                  status:
+                    type: string
+                    example: error
+                  message:
+                    type: string
+                    example: 'Virtual account not found'
+      tags:
+        - 'Virtual Accounts'
+    parameters:
+      -
+        in: path
+        name: uid
+        description: 'The virtual account UID.'
+        example: va_550e8400-e29b-41d4-a716-446655440000
+        required: true
+        schema:
+          type: string
+  /v1/check-balance:
+    get:
+      summary: 'Check Wallet Balance'
+      operationId: checkWalletBalance
+      description: 'Retrieve the current balance of your business wallet. Returns the available balance and currency.'
+      parameters: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: success
+                  message: 'Balance retrieved'
+                  data:
+                    balance: 150000
+                    currency: NGN
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: success
+                  message:
+                    type: string
+                    example: 'Balance retrieved'
+                  data:
+                    type: object
+                    properties:
+                      balance:
+                        type: integer
+                        example: 150000
+                      currency:
+                        type: string
+                        example: NGN
+                  errors:
+                    type: string
+                    example: null
+        401:
+          description: Unauthenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: failed
+                  message: Unauthenticated
+                  data: null
+                  errors: null
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: Unauthenticated
+                  data:
+                    type: string
+                    example: null
+                  errors:
+                    type: string
+                    example: null
+      tags:
+        - Wallet
+tags:
+  -
+    name: Account
+    description: ''
+  -
+    name: Collection
+    description: ''
+  -
+    name: Transactions
+    description: ''
+  -
+    name: Transfers
+    description: ''
+  -
+    name: Verification
+    description: ''
+  -
+    name: 'Virtual Accounts'
+    description: ''
+  -
+    name: Wallet
+    description: ''

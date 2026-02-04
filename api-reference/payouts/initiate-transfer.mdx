@@ -1,5 +1,150 @@
 ---
-title: 'Initiate Transfer'
+title: 'Send Money'
+description: 'Transfer funds to any Nigerian bank account'
 ---
 
-The **Initiate Transfer** API endpoint allows you to initiate a transfer from your Glyde account to a bank account. This endpoint is useful for disbursing funds to your customers or partners.
+Send money from your Glyde wallet to any Nigerian bank account. Transfers are processed instantly during banking hours and typically complete within seconds.
+
+## How Transfers Work
+
+<Steps>
+  <Step title="Verify the Recipient">
+    Always verify the bank account before sending to confirm the account name matches your recipient.
+  </Step>
+  <Step title="Initiate the Transfer">
+    Call the transfer API with the amount, bank details, and your unique reference.
+  </Step>
+  <Step title="Receive Confirmation">
+    Glyde sends a `transfer.success` or `transfer.failed` webhook when the transfer completes.
+  </Step>
+</Steps>
+
+## Prerequisites
+
+Before making transfers:
+
+- **Fund your wallet** — Your Glyde wallet must have sufficient balance (amount + fee)
+- **Configure webhooks** — Transfers require a webhook URL to be set in your dashboard
+- **Get bank codes** — Use the `/v1/banks` endpoint to get valid bank codes
+
+## Step 1: Verify the Account
+
+Always verify bank accounts before transferring. This confirms the account exists and shows you the account holder's name:
+
+```bash
+GET /v1/account-enquiry?account_number=0264341458&bank_code=058
+```
+
+```json
+{
+  "status": "success",
+  "data": {
+    "bank_name": "GTBank",
+    "account_name": "John Doe",
+    "account_number": "0264341458"
+  }
+}
+```
+
+Display the `account_name` to your user for confirmation before proceeding. This prevents sending money to the wrong person.
+
+## Step 2: Initiate the Transfer
+
+Once verified, send the transfer:
+
+```bash
+POST /v1/transfer/initiate
+```
+
+```json
+{
+  "amount": 5000,
+  "bank_code": "058",
+  "account_number": "0264341458",
+  "reference": "payout_abc123"
+}
+```
+
+**Key fields:**
+- `amount` — Amount in kobo (5000 = ₦50)
+- `bank_code` — The recipient's bank code (from `/v1/banks`)
+- `account_number` — 10-digit account number
+- `reference` — Your unique identifier for this transfer
+
+The response confirms the transfer was initiated:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "reference": "glyde_ref_550e8400",
+    "merchant_reference": "payout_abc123",
+    "amount": 5000,
+    "status": "pending",
+    "fee": 25
+  }
+}
+```
+
+## Transfer Lifecycle
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Transfer is being processed |
+| `successful` | Funds delivered to recipient |
+| `failed` | Transfer could not be completed |
+
+Most transfers complete within seconds, but some may take longer during bank maintenance windows or high-traffic periods.
+
+## Webhook Notification
+
+When the transfer completes, you'll receive a webhook:
+
+```json
+{
+  "event": "transfer.success",
+  "data": {
+    "reference": "glyde_ref_550e8400",
+    "merchant_reference": "payout_abc123",
+    "amount": 5000,
+    "status": "successful",
+    "fee": 25
+  }
+}
+```
+
+For failed transfers:
+
+```json
+{
+  "event": "transfer.failed",
+  "data": {
+    "reference": "glyde_ref_550e8400",
+    "merchant_reference": "payout_abc123",
+    "status": "failed",
+    "failure_reason": "Account frozen"
+  }
+}
+```
+
+## Common Errors
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| Insufficient funds | Wallet balance too low | Fund your wallet before retrying |
+| Duplicate reference | Reference already used | Generate a new unique reference |
+| Invalid bank code | Bank code not recognized | Use codes from `/v1/banks` |
+| Account not found | Account number invalid | Verify the account first |
+| Webhook not configured | No webhook URL set | Configure webhooks in dashboard |
+
+## Fees
+
+Each transfer incurs a small fee deducted from your wallet. The fee is shown in the initiate response and webhook. Ensure your wallet balance covers both the transfer amount and the fee.
+
+## Best Practices
+
+1. **Always verify first** — Never skip account verification; it prevents costly mistakes
+2. **Show confirmation UI** — Display the verified account name and ask users to confirm before sending
+3. **Use unique references** — Generate references that help you trace transactions (e.g., `payout_{user_id}_{timestamp}`)
+4. **Handle failures gracefully** — Not all transfers succeed; have a process for retrying or notifying affected users
+5. **Monitor your balance** — Set up alerts when your wallet balance gets low

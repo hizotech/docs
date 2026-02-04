@@ -1,5 +1,156 @@
 ---
-title: 'Initialise Collection Request'
+title: 'Accept Payments'
+description: 'Collect payments from your customers'
 ---
 
-The **Initialise Collection Request** API endpoint allows you to create a new collection request for a customer. This endpoint is useful for initiating a collection request, which can be used to collect funds from a customer's bank account.
+Glyde provides two ways to accept payments from customers: a hosted checkout page or direct bank transfer. Choose the method that best fits your use case.
+
+## Payment Methods
+
+### Hosted Checkout
+
+Redirect customers to a Glyde-hosted payment page where they can pay via card or bank transfer. This is the simplest integration—you create a session, redirect the customer, and receive a webhook when payment completes.
+
+**Best for:** E-commerce checkouts, invoice payments, subscription signups
+
+### Direct Bank Transfer
+
+Generate a temporary virtual account number that customers transfer to directly. You display the account details in your own UI, giving you full control over the payment experience.
+
+**Best for:** Custom checkout flows, mobile apps, POS systems
+
+## How It Works
+
+<Steps>
+  <Step title="Create Payment Session">
+    Call the API with the amount, customer details, and your unique reference.
+  </Step>
+  <Step title="Customer Pays">
+    For hosted checkout, redirect to the payment URL. For bank transfer, display the account details.
+  </Step>
+  <Step title="Receive Webhook">
+    Glyde sends a `collection.success` webhook when payment is confirmed.
+  </Step>
+  <Step title="Fulfill Order">
+    Verify the webhook signature and fulfill the customer's order.
+  </Step>
+</Steps>
+
+## Hosted Checkout
+
+Create a payment session and redirect your customer:
+
+```bash
+POST /v1/collection/initialise
+```
+
+```json
+{
+  "currency": "NGN",
+  "amount": 10000,
+  "reference": "order_12345678",
+  "customer": {
+    "name": "John Doe",
+    "email": "john@example.com"
+  },
+  "channels": ["card_payment", "bank_transfer"],
+  "default_channel": "card_payment"
+}
+```
+
+**Key fields:**
+- `amount` — Amount in kobo (10000 = ₦100)
+- `reference` — Your unique identifier for this payment
+- `channels` — Payment methods to offer (`card_payment`, `bank_transfer`, or both)
+- `default_channel` — Which method to show first
+
+The response includes a `url` to redirect your customer to:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "url": "https://pay.useglyde.io/f369f561-aaa4-4701"
+  }
+}
+```
+
+## Direct Bank Transfer
+
+Generate account details for the customer to transfer to:
+
+```bash
+POST /v1/collection/bank-transfer
+```
+
+```json
+{
+  "currency": "NGN",
+  "amount": 10000,
+  "reference": "order_12345678",
+  "customer_name": "John Doe",
+  "customer_email": "john@example.com"
+}
+```
+
+The response includes temporary bank account details:
+
+```json
+{
+  "status": "success",
+  "data": {
+    "account_number": "1234567890",
+    "account_name": "Checkout-MyBusiness",
+    "bank_name": "Fidelity Bank",
+    "amount": 10050,
+    "expires_at": "2025-01-19T12:30:00Z"
+  }
+}
+```
+
+Display these details to your customer. The account expires after a set period, and the customer must transfer the exact `amount` shown (which may include a small fee).
+
+## Checking Payment Status
+
+Poll for status if needed (though webhooks are preferred):
+
+```bash
+GET /v1/collection/{reference}
+```
+
+## Payment Lifecycle
+
+| Status | Meaning |
+|--------|---------|
+| `pending` | Waiting for customer to pay |
+| `successful` | Payment received and confirmed |
+| `failed` | Payment failed or expired |
+
+## Webhook Notification
+
+When payment completes, you'll receive a webhook:
+
+```json
+{
+  "event": "collection.success",
+  "data": {
+    "reference": "glyde_ref_123",
+    "merchant_reference": "order_12345678",
+    "amount": 10000,
+    "status": "successful"
+  }
+}
+```
+
+Use `merchant_reference` to match this to your original order.
+
+<Warning>
+  **Never trust redirects alone.** Customers can manipulate redirect URLs or close their browser. Always wait for the webhook before fulfilling orders.
+</Warning>
+
+## Best Practices
+
+1. **Generate unique references** — Use UUIDs or prefixed sequential IDs to avoid duplicates
+2. **Store the Glyde reference** — Save `reference` from webhooks for future lookups and support requests
+3. **Handle expiration** — Bank transfer accounts expire; prompt customers to retry if needed
+4. **Show clear instructions** — For bank transfers, clearly display the account number, bank name, and exact amount

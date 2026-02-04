@@ -1,195 +1,133 @@
 ---
 title: 'Webhooks'
+description: 'Receive real-time notifications when transaction statuses change'
 ---
 
-Webhooks are a great way for Glyde to keep your application informed of changes in your account and transaction status updates.
+Webhooks are HTTP callbacks that notify your application when events occur in your Glyde account. Instead of polling the API to check transaction status, webhooks push updates to you in real-time.
 
-When a transaction is initiated, it progresses through various stages, from pending to either successful or failed. At each stage, we will send a notification to the webhook URL registered in your merchant account.
+## Why Webhooks Matter
 
-# Webhook Setup
-Log into your account and go to Settings > API Keys & Webhook. From there, update your webhook URL.
+Webhooks are essential for production integrations because:
 
-# Webhook URL
-The webhook URL is a publicly accessible endpoint on your application/website that can receive a post request from Glyde. We will send updates about transactions to the endpoint.
+- **Real-time updates** — Know immediately when a payment succeeds or a transfer completes
+- **Reliability** — Don't miss status changes due to network issues or polling gaps
+- **Efficiency** — Reduce API calls by receiving push notifications instead of polling
+- **Automation** — Trigger fulfillment, send receipts, or update records automatically
 
-# Signing Key
-The webhook will be signed using the secret key, a secure, randomly generated string. This ensures that the request originates from Glyde. The signing key will be included in the webhook request header X-Signature-Hash when sending data to your webhook URL.
+<Warning>
+  Never rely solely on client-side redirects to confirm payments. Customers can manipulate redirect URLs or close their browser before redirecting. Always verify transaction status via webhooks.
+</Warning>
 
-# Signature Validation
+## Setting Up Webhooks
 
-To validate the signature, you can use the following PHP code:
+1. Go to **Settings** → **API Keys & Webhook** in your dashboard
+2. Enter your webhook endpoint URL (must be HTTPS in production)
+3. Copy your webhook signing key for signature verification
 
-<CodeGroup>
-```javascript SignatureValidator.js
-const crypto = require('crypto');
-const http = require('http');
+Your endpoint should be publicly accessible and respond quickly. Glyde will send POST requests to this URL when events occur.
 
-const PORT = process.env.PORT || 3000; // Use environment variable for port or default to 3000
-const GLYDE_SIGNING_KEY = 'YOUR_SIGNING_KEY'; // Replace with your actual signing key
+## Event Types
 
-const server = http.createServer((req, res) => {
-  if (req.method !== 'POST' || !req.headers['http-x-signature-hash']) {
-    res.statusCode = 400;
-    res.end('Invalid request method or missing signature header.');
-    return;
-  }
+| Event | Description | When It Fires |
+|-------|-------------|---------------|
+| `collection.success` | Payment received | Customer completes a payment |
+| `collection.failed` | Payment failed | Payment attempt fails or expires |
+| `transfer.success` | Transfer completed | Funds delivered to recipient |
+| `transfer.failed` | Transfer failed | Transfer could not be completed |
 
-  let inputData = '';
-  req.on('data', (chunk) => {
-    inputData += chunk.toString();
-  });
+## Webhook Payload
 
-  req.on('end', () => {
-    const signature = req.headers['http-x-signature-hash'];
-    const calculatedHash = crypto.createHmac('sha256', GLYDE_SIGNING_KEY)
-      .update(inputData)
-      .digest('hex');
+Every webhook includes an `event` field identifying what happened and a `data` object with transaction details:
 
-    if (signature !== calculatedHash) {
-      res.statusCode = 401;
-      res.end('Invalid signature.');
-      return;
-    }
-
-    res.statusCode = 200;
-    res.end();
-
-    // Parse JSON data (assuming it's in the request body)
-    try {
-      const event = JSON.parse(inputData);
-      // Process the data in the 'event' object here
-      console.log('Received event:', event);
-    } catch (error) {
-      console.error('Error parsing JSON:', error.message);
-      // Handle JSON parsing error appropriately (e.g., send error response)
-    }
-  });
-});
-
-server.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
-});
-```
-
-```php SignatureValidator.php
-if (strtoupper($_SERVER['REQUEST_METHOD']) != 'POST' || !in_array('HTTP_X_SIGNATURE_HASH', $_SERVER)) {
-  exit();
-}
-
-// Get the input from the request.
-$input = @file_get_contents("php://input");
-
-// Replace SIGNING_KEY with the signing key from your account
-define('GLYDE_SIGNING_KEY', 'SIGNING_KEY');
-
-// Validate the authenticity of the data sent
-if ($_SERVER['HTTP_X_SIGNATURE_HASH'] !== hash_hmac('sha256', $input, GLYDE_SIGNING_KEY)) {
-  exit();
-}
-
-// Send an HTTP success response back to Glyde
-
-http_response_code(200);
-
-//Decode the JSON string and convert it to an associative array.
-$event = json_decode($input, true);
-
-// **(Optional Processing Placeholder):**
-// Add your code here to process the data in the $event variable
-
-exit();
-```
-
-
-```python SignatureValidator.py 
-import http.server
-import hashlib
-import json
-
-class GlydeWebhookHandler(http.server.BaseHTTPRequestHandler):
-    def do_POST(self):
-        if self.path != '/':
-            self.send_response(404)
-            self.end_headers()
-            return
-
-        if 'x-signature-hash' not in self.headers:
-            self.send_response(400)
-            self.end_headers()
-            self.wfile.write(b'Invalid request missing signature header.')
-            return
-
-        input_data = self.rfile.read(int(self.headers['Content-Length']))
-
-        if not input_data:
-            self.send_response(400)
-            self.end_headers()
-            self.wfile.write(b'Failed to read request body.')
-            return
-
-        # Replace 'SIGNING_KEY' with the actual signing key provided by Glyde
-        GLYDE_SIGNING_KEY = b'SIGNING_KEY'
-
-        # Validate the authenticity of the data sent
-        if self.headers['x-signature-hash'].encode() != hashlib.sha256(input_data + GLYDE_SIGNING_KEY).hexdigest().encode():
-            self.send_response(401)
-            self.end_headers()
-            self.wfile.write(b'Invalid signature.')
-            return
-
-        # Decode the JSON data
-        try:
-            event = json.loads(input_data.decode())
-        except ValueError:
-            self.send_response(400)
-            self.end_headers()
-            self.wfile.write(b'Invalid JSON format in request body.')
-            return
-
-        # Optional processing logic
-        # Add your code here to process the event data
-
-        self.send_response(200)
-        self.end_headers()
-
-if __name__ == '__main__':
-    server_address = ('', 8000)
-    httpd = http.server.HTTPServer(server_address, GlydeWebhookHandler)
-    print('Server running on port 8000...')
-    httpd.serve_forever()
-```
-</CodeGroup>
-
-# Event Types
-
-<CodeGroup>
-```json Transfer Success
+```json
 {
-  "event": "transfer.success",
+  "event": "collection.success",
   "data": {
-    "reference": "fa59e3c4-14b6-370e-ab0c-a8eaa7af2056",
-    "merchant_reference": "fa6ba254-ba5c-4db2-9015-8caf3107cd56",
-    "type": "debit",
-    "amount": 200,
+    "reference": "glyde_ref_123",
+    "merchant_reference": "order_456",
+    "amount": 10000,
     "status": "successful",
-    "fee": 20,
-    "created_at": "2025-03-01T21:20:54.000000Z"
+    "fee": 100,
+    "created_at": "2025-01-19T10:30:00.000000Z"
   }
 }
 ```
 
-```json Transfer Failed
-{
-  "event": "transfer.failed",
-  "data": {
-    "reference": "fa59e3c4-14b6-370e-cb0c-a8eaa7af2056",
-    "merchant_reference": "fa9ba254-ha5c-4db2-9015-8caf3107cd56",
-    "type": "debit",
-    "amount": 200,
-    "status": "failed",
-    "fee": 20,
-    "created_at": "2025-03-01T21:10:54.000000Z"
-  }
+Use `merchant_reference` to match the webhook to your original transaction. This is the reference you provided when creating the transaction.
+
+## Verifying Webhook Signatures
+
+Webhooks include an `X-Signature-Hash` header containing an HMAC-SHA256 signature. **Always verify this signature** to ensure the webhook came from Glyde and wasn't tampered with.
+
+To verify:
+1. Get the raw request body (before parsing JSON)
+2. Compute HMAC-SHA256 using your signing key
+3. Compare your hash with the `X-Signature-Hash` header
+
+<CodeGroup>
+```javascript Node.js
+const crypto = require('crypto');
+
+function verifySignature(payload, signature, signingKey) {
+  const hash = crypto
+    .createHmac('sha256', signingKey)
+    .update(payload)
+    .digest('hex');
+  return hash === signature;
 }
 ```
+
+```python Python
+import hmac
+import hashlib
+
+def verify_signature(payload: bytes, signature: str, signing_key: str) -> bool:
+    expected = hmac.new(
+        signing_key.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected, signature)
+```
+
+```php PHP
+$expected = hash_hmac('sha256', $payload, $signingKey);
+$valid = hash_equals($expected, $signature);
+```
 </CodeGroup>
+
+## Handling Webhooks
+
+Follow these best practices when processing webhooks:
+
+### 1. Respond Quickly
+
+Return a `200 OK` status immediately, then process the webhook asynchronously. Glyde waits for a response and will retry if your endpoint times out.
+
+### 2. Handle Duplicates
+
+Webhooks may be delivered more than once. Use the `reference` field to implement idempotency—check if you've already processed a webhook before taking action.
+
+### 3. Verify Before Acting
+
+Always verify the webhook signature before processing. Additionally, consider fetching the transaction from the API to confirm its current status before fulfilling orders or releasing funds.
+
+### 4. Log Everything
+
+Store webhook payloads for debugging and audit purposes. If something goes wrong, logs help you understand what happened.
+
+## Retry Policy
+
+If your endpoint doesn't return a `2xx` response, Glyde retries with exponential backoff:
+
+- 1st retry: 5 minutes
+- 2nd retry: 30 minutes
+- 3rd retry: 2 hours
+- 4th retry: 8 hours
+- 5th retry: 24 hours
+
+After all retries fail, the webhook is marked as failed. You can view failed webhooks in your dashboard and manually retry them.
+
+## Testing Webhooks
+
+In sandbox mode, webhooks behave the same as production. Use tools like [ngrok](https://ngrok.com) to expose your local development server and receive webhooks during testing.

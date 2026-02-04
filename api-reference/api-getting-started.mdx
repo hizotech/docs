@@ -1,18 +1,62 @@
 ---
-title: 'Getting Started'
+title: 'API Overview'
+description: 'Interactive API reference for Glyde endpoints'
 ---
-To start using the Glyde Public API, you need access credentials. Depending on the authentication method required, this may include an API key or other secure tokens.
 
-# Authentication
-To ensure the security of your API calls, it's essential to include your unique secret key within the Authorization header for each request. You can conveniently handle and manage your API keys directly from your dashboard.
+This section provides an interactive API reference where you can explore and test all Glyde API endpoints directly from the documentation.
 
-For your convenience, we offer  API token keys. These are designed for various purposes, such as initiating disbursements with Glyde, fetching transactions, and checking balances, among others. API token keys should be kept confidential at all times. If you suspect that your API token key has been compromised or if you need to reset it for any reason, you can easily manage it directly from the dashboard.
+## Base URLs
 
-# Authorization
-Authorization is a critical aspect of accessing our services. To authorize your access, you need to include your API token key in the Authorization header of every request you make. This ensures that your requests are authenticated and granted the necessary permissions.
+| Environment | URL |
+|-------------|-----|
+| Production | `https://api.useglyde.co/v1` |
+| Sandbox | `https://sandbox.useglyde.co/v1` |
 
-# How to access API tokens on your dashboard
-To access API tokens from the dashboard, simply navigate to the "API Keys" section. This allows you to manage and obtain the necessary API tokens required for authenticating your API calls.
+## Authentication
 
-To begin using the Glyde API, refer to the endpoint documentation below. Each section provides details on request parameters, response structures, and example payloads. 
+All API requests require a Bearer token in the Authorization header:
 
+```
+Authorization: Bearer sk_live_your_secret_key
+```
+
+## Available Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Collections" icon="money-bill-wave" href="/api-reference/collection/initialise-collection-request">
+    Accept payments from customers via bank transfer or card
+  </Card>
+  <Card title="Transfers" icon="paper-plane" href="/api-reference/transactions/initiate-transfer">
+    Send money to bank accounts
+  </Card>
+  <Card title="Account Verification" icon="user-check" href="/api-reference/endpoints/resolve-account-name">
+    Verify account details before transfer
+  </Card>
+  <Card title="Transactions" icon="list" href="/api-reference/endpoints/list-transactions">
+    List and fetch transaction details
+  </Card>
+  <Card title="Settlements" icon="building-columns" href="/api-reference/transactions/fetch-all-settlements">
+    Track your settlement history
+  </Card>
+  <Card title="Banks" icon="bank" href="/api-reference/endpoints/get-list-of-banks">
+    Get list of supported banks
+  </Card>
+</CardGroup>
+
+## Using the API Playground
+
+Each endpoint page includes an interactive API playground where you can:
+
+1. View request and response schemas
+2. Test API calls with your credentials
+3. See example requests in multiple languages
+
+<Tip>
+  Use your sandbox API key when testing in the playground to avoid affecting production data.
+</Tip>
+
+## Need Help?
+
+- Check the [Documentation](/api-reference/getting-started) for detailed guides
+- Review [Error Handling](/api-reference/errors) for troubleshooting
+- Contact support at hello@useglyde.co

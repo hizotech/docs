@@ -1,6 +1,172 @@
 ---
 title: 'Fetch Transaction'
+description: 'Get details of a specific transaction'
 ---
 
-The **Fetch Transaction** API allows you to retrieve details about a specific transaction using its unique identifier. This is useful for verifying transaction details, checking statuses, or retrieving metadata.
+The Fetch Transaction endpoint allows you to retrieve detailed information about a specific transaction using its unique reference. Use this to verify transaction details, check statuses, or retrieve metadata.
 
+## Endpoint
+
+```
+GET /v1/transaction/{reference}
+```
+
+## Path Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `reference` | string | Yes | The unique transaction reference (either Glyde's reference or your merchant reference) |
+
+## Headers
+
+| Header | Type | Required | Description |
+|--------|------|----------|-------------|
+| `Authorization` | string | Yes | Bearer token with your secret key |
+| `x-biz-number` | string | No | Your business identifier (if applicable) |
+
+## Example Request
+
+<CodeGroup>
+```bash cURL
+curl -X GET "https://api.useglyde.co/v1/transaction/650612ff-57b6-46f5-94c5-1142cbe76d00" \
+  -H "Authorization: Bearer sk_live_your_secret_key" \
+  -H "Content-Type: application/json"
+```
+
+```javascript Node.js
+const axios = require('axios');
+
+const reference = '650612ff-57b6-46f5-94c5-1142cbe76d00';
+
+const response = await axios.get(`https://api.useglyde.co/v1/transaction/${reference}`, {
+  headers: {
+    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Content-Type': 'application/json'
+  }
+});
+
+console.log(response.data);
+```
+
+```python Python
+import requests
+
+reference = '650612ff-57b6-46f5-94c5-1142cbe76d00'
+
+headers = {
+    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    f'https://api.useglyde.co/v1/transaction/{reference}',
+    headers=headers
+)
+
+print(response.json())
+```
+
+```php PHP
+<?php
+$curl = curl_init();
+$reference = '650612ff-57b6-46f5-94c5-1142cbe76d00';
+
+curl_setopt_array($curl, [
+    CURLOPT_URL => 'https://api.useglyde.co/v1/transaction/' . $reference,
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_HTTPHEADER => [
+        'Authorization: Bearer sk_live_your_secret_key',
+        'Content-Type: application/json'
+    ],
+]);
+
+$response = curl_exec($curl);
+curl_close($curl);
+
+$data = json_decode($response, true);
+print_r($data);
+```
+</CodeGroup>
+
+## Response
+
+<CodeGroup>
+```json Success (200)
+{
+  "status": "success",
+  "message": "Transaction retrieved successfully",
+  "data": {
+    "reference": "650612ff-57b6-46f5-94c5-1142cbe76d00",
+    "merchant_reference": "your_unique_ref_123",
+    "type": "debit",
+    "amount": 200000,
+    "fee": 2500,
+    "status": "successful",
+    "description": "Payout to vendor",
+    "recipient": {
+      "account_number": "0264341458",
+      "account_name": "John Doe",
+      "bank_code": "058",
+      "bank_name": "GT Bank"
+    },
+    "created_at": "2025-03-01T21:20:54.000000Z",
+    "completed_at": "2025-03-01T21:21:15.000000Z"
+  },
+  "errors": null
+}
+```
+
+```json Not Found (404)
+{
+  "status": "failed",
+  "message": "Transaction not found",
+  "data": null,
+  "errors": null
+}
+```
+</CodeGroup>
+
+## Response Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `reference` | string | Glyde's unique reference for the transaction |
+| `merchant_reference` | string | Your provided reference |
+| `type` | string | Transaction type: `credit` or `debit` |
+| `amount` | integer | Transaction amount in smallest currency unit |
+| `fee` | integer | Fee charged for the transaction |
+| `status` | string | Transaction status: `pending`, `successful`, or `failed` |
+| `description` | string | Transaction description (if provided) |
+| `recipient` | object | Recipient details for payout transactions |
+| `created_at` | string | Timestamp when the transaction was created |
+| `completed_at` | string | Timestamp when the transaction was completed (if applicable) |
+
+### Recipient Object (for payouts)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `account_number` | string | Recipient's bank account number |
+| `account_name` | string | Recipient's account name |
+| `bank_code` | string | Recipient's bank code |
+| `bank_name` | string | Recipient's bank name |
+
+## Use Cases
+
+<CardGroup cols={2}>
+  <Card title="Verify Status" icon="circle-check">
+    Check if a transaction completed successfully
+  </Card>
+  <Card title="Customer Support" icon="headset">
+    Look up transaction details for customer inquiries
+  </Card>
+  <Card title="Reconciliation" icon="scale-balanced">
+    Match transactions with your internal records
+  </Card>
+  <Card title="Retry Failed Transactions" icon="rotate">
+    Get details of failed transactions to retry
+  </Card>
+</CardGroup>
+
+<Tip>
+  Store the `reference` returned from Glyde in your database to easily fetch transaction details later.
+</Tip>
