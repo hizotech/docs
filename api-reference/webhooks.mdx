@@ -57,12 +57,12 @@ Use `merchant_reference` to match the webhook to your original transaction. This
 
 ## Verifying Webhook Signatures
 
-Webhooks include an `X-Signature-Hash` header containing an HMAC-SHA256 signature. **Always verify this signature** to ensure the webhook came from Glyde and wasn't tampered with.
+Webhooks include an `X-Glyde-Signature` header containing an HMAC-SHA256 signature. **Always verify this signature** to ensure the webhook came from Glyde and wasn't tampered with.
 
 To verify:
 1. Get the raw request body (before parsing JSON)
 2. Compute HMAC-SHA256 using your signing key
-3. Compare your hash with the `X-Signature-Hash` header
+3. Compare your hash with the `X-Glyde-Signature` header
 
 <CodeGroup>
 ```javascript Node.js
