@@ -16,7 +16,7 @@ GET /v1/banks
 <CodeGroup>
 ```bash cURL
 curl -X GET "https://api.useglyde.co/v1/banks" \
-  -H "Authorization: Bearer sk_live_your_secret_key" \
+  -H "Authorization: Bearer sk_your_secret_key" \
   -H "Content-Type: application/json"
 ```
 
@@ -25,7 +25,7 @@ const axios = require('axios');
 
 const response = await axios.get('https://api.useglyde.co/v1/banks', {
   headers: {
-    'Authorization': 'Bearer sk_live_your_secret_key',
+    'Authorization': 'Bearer sk_your_secret_key',
     'Content-Type': 'application/json'
   }
 });
@@ -53,7 +53,7 @@ curl_setopt_array($curl, [
     CURLOPT_URL => 'https://api.useglyde.co/v1/banks',
     CURLOPT_RETURNTRANSFER => true,
     CURLOPT_HTTPHEADER => [
-        'Authorization: Bearer sk_live_your_secret_key',
+        'Authorization: Bearer sk_your_secret_key',
         'Content-Type: application/json'
     ],
 ]);

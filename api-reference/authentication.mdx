@@ -11,8 +11,8 @@ Glyde provides different types of API keys for different purposes:
 
 | Key Type | Prefix | Purpose |
 |----------|--------|---------|
-| **Live Secret Key** | `sk_live_` | Production transactions with real money |
-| **Sandbox Secret Key** | `sk_sandbox_` | Testing without processing real transactions |
+| **Live Secret Key** | `sk_` | Production transactions with real money |
+| **Sandbox Secret Key** | `sk_` | Testing without processing real transactions |
 | **Public Key** | `pk_` | Client-side operations with limited access |
 
 <Warning>
@@ -32,19 +32,19 @@ Your dashboard displays both sandbox and live keys. Use sandbox keys during deve
 Include your secret key in the `Authorization` header of every API request:
 
 ```
-Authorization: Bearer sk_live_your_secret_key
+Authorization: Bearer sk_your_secret_key
 ```
 
 <CodeGroup>
 ```bash cURL
 curl -X GET "https://api.useglyde.co/v1/banks" \
-  -H "Authorization: Bearer sk_live_your_secret_key"
+  -H "Authorization: Bearer sk_your_secret_key"
 ```
 
 ```javascript Node.js
 const response = await fetch('https://api.useglyde.co/v1/banks', {
   headers: {
-    'Authorization': 'Bearer sk_live_your_secret_key'
+    'Authorization': 'Bearer sk_your_secret_key'
   }
 });
 ```
@@ -54,7 +54,7 @@ import requests
 
 response = requests.get(
     'https://api.useglyde.co/v1/banks',
-    headers={'Authorization': 'Bearer sk_live_your_secret_key'}
+    headers={'Authorization': 'Bearer sk_your_secret_key'}
 )
 ```
 </CodeGroup>
@@ -82,8 +82,8 @@ Each environment has its own base URL and requires matching API keys:
 
 | Mode | Base URL | Key Prefix |
 |------|----------|------------|
-| **Sandbox** | `https://sandbox.useglyde.co/v1` | `sk_sandbox_` |
-| **Production** | `https://api.useglyde.co/v1` | `sk_live_` |
+| **Sandbox** | `https://sandbox.useglyde.co/v1` | `sk_` |
+| **Production** | `https://api.useglyde.co/v1` | `sk_` |
 
 Requests to production with sandbox keys (or vice versa) will fail authentication.
 
