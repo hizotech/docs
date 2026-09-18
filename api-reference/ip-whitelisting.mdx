@@ -1,0 +1,128 @@
+---
+title: 'IP Whitelisting'
+description: 'Restrict transfer requests to your approved server IP addresses'
+---
+
+IP whitelisting lets you restrict money-moving API calls to a fixed set of server IP addresses. Once enabled on your business, Glyde rejects any transfer request that does not originate from an address on your whitelist, even if it carries a valid secret key.
+
+## Why IP Whitelisting?
+
+IP whitelisting adds an extra layer of security to your integration by ensuring that only requests from your approved IP addresses can move money out of your wallet. If your secret key is ever leaked, an attacker still cannot initiate transfers from an unapproved server. This helps protect your account, your wallet balance, and your customers' funds from unauthorized access.
+
+## What It Protects
+
+IP whitelisting applies to the **Send Money** endpoint:
+
+| Endpoint | Whitelisted |
+|----------|-------------|
+| `POST /v1/transfer/initiate` | Yes |
+| All other endpoints (balance, banks, account enquiry, transactions, collections, virtual accounts) | No |
+
+The check runs in **both sandbox and production**. Whitelist the IPs of your development or staging servers as well if you initiate transfers from them in sandbox.
+
+<Info>
+  IP whitelisting is **off by default**. Your existing integration is not affected until you switch it on in your dashboard.
+</Info>
+
+## Enabling IP Whitelisting
+
+You can turn IP whitelisting on and off yourself from the Glyde merchant dashboard.
+
+<Steps>
+  <Step title="Add your IP addresses first">
+    Go to **Settings** → **Security** → **IP Whitelist** and add every address your servers use (see [Managing Your Whitelist](#managing-your-whitelist) below). If you switch whitelisting on while your list is empty, **all** transfer requests are rejected until you add an address.
+  </Step>
+  <Step title="Turn on IP whitelisting">
+    On the same page, switch on **Enable IP whitelisting** for your business. The restriction takes effect immediately.
+  </Step>
+  <Step title="Verify">
+    Initiate a sandbox transfer from one of your whitelisted servers. A successful response confirms the whitelist is working. A request from any other machine now returns `403 Forbidden`.
+  </Step>
+</Steps>
+
+<Warning>
+  Turning whitelisting on with an empty list blocks every transfer, in sandbox and production. Always add at least one address before enabling it.
+</Warning>
+
+## Managing Your Whitelist
+
+Your whitelist lives in the dashboard under **Settings** → **Security** → **IP Whitelist**. Viewing the list requires the *view API keys* permission, and adding or removing entries requires the *manage API keys* permission on your team role.
+
+### Finding your server's public IP
+
+Identify the public IP address your backend uses for **outbound** requests. From the server that will call the Glyde API, run:
+
+```bash
+curl https://ifconfig.me
+```
+
+If your infrastructure routes outbound traffic through a NAT gateway, egress proxy, or load balancer, whitelist that gateway's IP rather than the individual instance IPs.
+
+### Adding an address
+
+1. Click **Add IP Address**
+2. Enter a single IP address, for example `203.0.113.10`
+3. Enter a description of at least 3 characters, for example `production-server-1`
+4. Confirm with your **two-factor authentication code**
+
+Two-factor authentication must be set up on your account before you can add addresses. Each entry holds exactly one address, so repeat the steps for every server.
+
+### Editing an address
+
+You can change an entry's description at any time. The IP address itself cannot be edited. To change it, delete the entry and add a new one.
+
+### Removing an address
+
+Deleting an entry takes effect immediately. Transfer requests from that address are rejected on the next call.
+
+## Supported Formats
+
+| Format | Example | Supported |
+|--------|---------|-----------|
+| **Single IPv4 address** | `203.0.113.10` | Yes |
+| **Single IPv6 address** | `2001:db8::10` | Yes |
+| **CIDR range** | `203.0.113.0/24` | No |
+| **Wildcard** | `203.0.113.*` | No |
+
+Matching is exact. Add each address individually.
+
+## Rejected Requests
+
+When a transfer request fails the whitelist check, Glyde responds with `403 Forbidden`. The transfer is not created and no funds move.
+
+**Request from an address not on your list:**
+
+```json
+{
+  "message": "Access denied. Your IP address is not allowed."
+}
+```
+
+**Whitelisting enabled but the list is empty:**
+
+```json
+{
+  "message": "Access denied. IP whitelisting is enabled but no IP addresses are configured."
+}
+```
+
+**Common causes:**
+- Your server's outbound IP changed (for example, after a redeploy on a cloud provider without a static IP)
+- Requests pass through a proxy, NAT gateway, or load balancer whose IP hasn't been whitelisted
+- You're initiating transfers from a local or staging machine that isn't on the list
+- A new server or region was added to your infrastructure without updating the whitelist
+- Your team deleted all entries while whitelisting was still enabled
+
+## Best Practices
+
+1. **Use static IPs** — Assign a fixed public IP or NAT gateway to the servers that call the transfer endpoint
+2. **Add before you switch** — When migrating infrastructure, whitelist the new IP first, then remove the old one once traffic has moved
+3. **Describe each entry** — Clear descriptions make it easy to audit and remove stale addresses later
+4. **Review regularly** — Remove IPs belonging to decommissioned servers or former environments
+5. **Combine with key security** — IP whitelisting complements, but does not replace, keeping your [secret keys](/api-reference/authentication) safe
+
+## Next Steps
+
+- Review [Send Money](/api-reference/payouts/initiate-transfer) for the endpoint this protects
+- Review [Authentication](/api-reference/authentication) to secure your requests with API keys
+- Understand [Error Handling](/api-reference/errors) to handle rejected requests gracefully

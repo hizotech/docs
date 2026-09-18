@@ -12,6 +12,7 @@ Glyde uses standard HTTP status codes to indicate the success or failure of API 
 | **200** | Success | Request completed successfully |
 | **400** | Bad Request | The request was malformed or missing required data |
 | **401** | Unauthorized | Authentication failed—check your API key |
+| **403** | Forbidden | Transfer request came from an IP address that isn't [whitelisted](/api-reference/ip-whitelisting) |
 | **404** | Not Found | The requested resource doesn't exist |
 | **422** | Validation Error | The request data failed validation rules |
 | **429** | Rate Limited | Too many requests—slow down and retry |

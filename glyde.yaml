@@ -13,7 +13,10 @@ paths:
     get:
       summary: Resolve Account Name
       operationId: resolveAccountName
-      description: Verify a bank account before initiating a transfer. Returns the account holder's name.
+      description: >-
+        Verify a Nigerian bank account before initiating a transfer. Returns the account holder's
+        name. There is no name enquiry rail for ZAR; rand payouts carry `account_name` on the
+        transfer request instead.
       tags:
         - Account
       parameters:
@@ -22,7 +25,7 @@ paths:
           required: true
           schema:
             type: string
-          description: The 10-digit account number
+          description: The recipient's 10-digit Nigerian account number
           example: "0264341458"
         - name: bank_code
           in: query
@@ -66,7 +69,11 @@ paths:
     get:
       summary: List Banks
       operationId: listBanks
-      description: Retrieve all active banks supported for transfers.
+      description: >-
+        Retrieve all active banks supported for transfers, across every market Glyde pays out to.
+        Nigerian banks carry 3-digit CBN codes; South African banks carry 6-digit universal branch
+        codes. A payout is rejected if the bank code belongs to a market other than the payout
+        currency's.
       tags:
         - Account
       responses:
@@ -114,6 +121,9 @@ paths:
               properties:
                 currency:
                   type: string
+                  description: >-
+                    ISO code of the collection currency. Collections are available in NGN only.
+                  enum: [NGN]
                   example: NGN
                 reference:
                   type: string
@@ -186,6 +196,9 @@ paths:
               properties:
                 currency:
                   type: string
+                  description: >-
+                    ISO code of the collection currency. Collections are available in NGN only.
+                  enum: [NGN]
                   example: NGN
                 reference:
                   type: string
@@ -257,7 +270,16 @@ paths:
     post:
       summary: Initiate Transfer
       operationId: initiateTransfer
-      description: Initiate a bank transfer to a recipient's account.
+      description: |
+        Initiate a bank transfer to a recipient's account.
+
+        Payouts are available in NGN and ZAR. The transfer debits the wallet of the currency it
+        names, falling back to your business' home currency when `currency` is omitted. Bank
+        codes are only unique within a market, so the code must belong to the payout currency's
+        country.
+
+        ZAR has no account name enquiry rail, so rand payouts must carry `account_name` and may
+        carry `account_type`.
       tags:
         - Transfers
       requestBody:
@@ -274,16 +296,61 @@ paths:
               properties:
                 amount:
                   type: integer
+                  description: >-
+                    The transfer amount in major units of the payout currency (5000 = NGN 5,000).
+                    Must be within your configured minimum and maximum limits.
                   example: 5000
+                currency:
+                  type: string
+                  description: >-
+                    Uppercase ISO code of the wallet to debit. Defaults to your business' home
+                    currency. Only currencies cleared for payouts are accepted.
+                  enum: [NGN, ZAR]
+                  example: ZAR
                 bank_code:
                   type: string
+                  description: >-
+                    The recipient's bank code from /v1/banks. 3-digit CBN codes for NGN,
+                    6-digit universal branch codes for ZAR.
                   example: "058"
                 account_number:
                   type: string
+                  description: The recipient's account number. 10 digits for NGN, 7-11 digits for ZAR.
                   example: "0264341458"
                 reference:
                   type: string
+                  description: Your unique reference for this transfer, used for idempotency and tracking.
                   example: txn_abc123xyz
+                account_name:
+                  type: string
+                  description: >-
+                    The recipient's account name. Required for ZAR payouts, where no name enquiry
+                    rail exists. Ignored for NGN, which resolves the name through the provider.
+                  example: Thabo Mokoena
+                account_type:
+                  type: string
+                  description: The recipient's account type. Used for ZAR payouts only.
+                  enum: [savings, current, cheque]
+                  example: savings
+            examples:
+              naira:
+                summary: Naira payout
+                value:
+                  amount: 5000
+                  currency: NGN
+                  bank_code: "058"
+                  account_number: "0264341458"
+                  reference: txn_abc123xyz
+              rand:
+                summary: Rand payout
+                value:
+                  amount: 750
+                  currency: ZAR
+                  bank_code: "250655"
+                  account_number: "123456789"
+                  account_name: Thabo Mokoena
+                  account_type: savings
+                  reference: txn_abc123xyw
       responses:
         "200":
           description: Success
@@ -307,14 +374,43 @@ paths:
                         type: string
                       type:
                         type: string
+                        example: debit
                       amount:
-                        type: integer
+                        type: string
+                        description: The amount in major units of the payout currency, as a string.
+                        example: "5000"
                       status:
                         type: string
+                        example: pending
                       fee:
-                        type: integer
+                        type: string
+                        description: The fee charged, priced in the payout currency.
+                        example: "25"
                       created_at:
                         type: string
+        "422":
+          description: >-
+            Validation error, unsupported currency, insufficient funds, unrecognized bank code,
+            duplicate reference, or a limit breach.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: failed
+                  message:
+                    type: string
+                    example: The provided currency is not supported.
+                  data:
+                    type: object
+                    nullable: true
+                  errors:
+                    type: object
+                    nullable: true
+        "401":
+          description: Unauthenticated
 
   /v1/transactions:
     get:
@@ -390,9 +486,21 @@ paths:
     get:
       summary: Check Wallet Balance
       operationId: checkWalletBalance
-      description: Retrieve the current balance of your business wallet.
+      description: >-
+        Retrieve the current balance of one of your business wallets. Balances are held per
+        currency; omit the currency to get your home currency wallet.
       tags:
         - Wallet
+      parameters:
+        - name: currency
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [NGN, ZAR]
+          description: >-
+            ISO code of the wallet to read, in any case. Defaults to your business' home currency.
+          example: ZAR
       responses:
         "200":
           description: Success
@@ -413,6 +521,10 @@ paths:
                       currency:
                         type: string
                         example: NGN
+        "404":
+          description: This business has no wallet in the requested currency
+        "422":
+          description: The provided currency is not supported
 
   /v1/verification/bvn-check:
     post:
@@ -602,13 +714,13 @@ tags:
   - name: Collection
     description: Accept payments from customers
   - name: Transfers
-    description: Send money to bank accounts
+    description: Send money to bank accounts. Available in NGN and ZAR
   - name: Transactions
     description: Transaction history and details
   - name: Settlements
     description: Settlement management
   - name: Wallet
-    description: Wallet balance
+    description: Per-currency wallet balances
   - name: Verification
     description: Identity verification
   - name: Virtual Accounts

@@ -18,7 +18,9 @@
             "pages": [
               "api-reference/introduction",
               "api-reference/getting-started",
-              "api-reference/authentication"
+              "api-reference/authentication",
+              "api-reference/ip-whitelisting",
+              "api-reference/supported-currencies"
             ]
           },
           {
