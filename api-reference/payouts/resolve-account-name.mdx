@@ -5,6 +5,10 @@ description: 'Validate bank account details before sending money'
 
 Account verification (also called account enquiry or name lookup) confirms that a bank account exists and returns the account holder's name. This is an essential step before initiating any transfer.
 
+<Note>
+  Account name enquiry is available for **NGN** accounts only. There is no enquiry for South African (ZAR) accounts, so send the recipient's `account_name` with the transfer instead. See [Send Money](/api-reference/payouts/initiate-transfer#sending-zar).
+</Note>
+
 ## Why Verify Accounts?
 
 Verifying accounts before transfers:

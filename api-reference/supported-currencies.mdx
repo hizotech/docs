@@ -1,0 +1,75 @@
+---
+title: 'Supported Currencies'
+description: 'Currencies Glyde supports and what you can do in each'
+---
+
+Glyde holds a separate wallet for each currency your business transacts in. Every request that moves money is tied to one currency, and a currency must be enabled for an operation before the API accepts it.
+
+## Currencies
+
+| Currency | ISO code | Country | Collections | Transfers (payouts) | Settlements |
+|----------|----------|---------|:-----------:|:-------------------:|:-----------:|
+| Nigerian Naira | `NGN` | Nigeria | ✅ | ✅ | ✅ |
+| South African Rand | `ZAR` | South Africa | — | ✅ | — |
+
+If you send a currency that isn't enabled for an operation, the request fails with `422`:
+
+```json
+{
+  "status": "failed",
+  "message": "Validation error",
+  "data": null,
+  "errors": {
+    "currency": ["The provided currency is not supported."]
+  }
+}
+```
+
+## Home Currency
+
+Each business has a **home currency**, which comes from the country it is registered in. If you leave `currency` out of a request, Glyde uses the home currency. For example, a Nigerian business that omits `currency` transacts in `NGN`.
+
+Pass `currency` explicitly when you work with more than one wallet. This makes sure the right wallet is used.
+
+## Wallets
+
+Balances are kept per currency. A transfer always debits the wallet that matches its currency, and funds never move between your NGN and ZAR wallets automatically.
+
+Use the `currency` query parameter to check a specific wallet:
+
+```bash
+GET /v1/check-balance?currency=ZAR
+```
+
+```json
+{
+  "status": "success",
+  "message": "Balance retrieved",
+  "data": {
+    "balance": 25000,
+    "currency": "ZAR"
+  },
+  "errors": null
+}
+```
+
+If your business has no wallet in the requested currency, the API returns `404` with the message `This business has no ZAR wallet.`
+
+## Differences by Currency
+
+| | NGN | ZAR |
+|---|-----|-----|
+| Bank codes | 3-digit CBN codes (e.g. `058`) | 6-digit universal branch codes (e.g. `250655`) |
+| Account number | 10 digits | 7–11 digits |
+| Account name enquiry | Available via `/v1/account-enquiry` | Not available. Send `account_name` on the transfer |
+| `account_type` | Not used | Optional: `savings`, `current` or `cheque` |
+
+`/v1/banks` returns banks for every supported market. Bank codes are only unique within a market, so the `bank_code` you send must belong to the payout currency's country. Otherwise the transfer is rejected with `Unrecognized bank code`.
+
+## Amounts
+
+Transfer amounts are given in **major units** of the payout currency. For example, `5000` with `NGN` sends ₦5,000, and `750` with `ZAR` sends R750. Fees are charged in the same currency as the transfer and are deducted from the same wallet.
+
+<Card title="Send Money" icon="paper-plane" href="/api-reference/payouts/initiate-transfer">
+  See how to send NGN and ZAR transfers
+</Card>

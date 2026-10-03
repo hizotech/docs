@@ -59,6 +59,7 @@ POST /v1/collection/initialise
 ```
 
 **Key fields:**
+- `currency` — Must be `NGN`. Collections are available in Nigerian Naira only
 - `amount` — Amount in kobo (10000 = ₦100)
 - `reference` — Your unique identifier for this payment
 - `channels` — Payment methods to offer (`card_payment`, `bank_transfer`, or both)

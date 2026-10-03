@@ -1,9 +1,16 @@
 ---
 title: 'Send Money'
-description: 'Transfer funds to any Nigerian bank account'
+description: 'Transfer funds to Nigerian and South African bank accounts'
 ---
 
-Send money from your Glyde wallet to any Nigerian bank account. Transfers are processed instantly during banking hours and typically complete within seconds.
+Send money from your Glyde wallet to bank accounts in Nigeria and South Africa. Transfers are supported in two currencies:
+
+| Currency | ISO code | Wallet debited |
+|----------|----------|----------------|
+| Nigerian Naira | `NGN` | Your NGN wallet |
+| South African Rand | `ZAR` | Your ZAR wallet |
+
+Set `currency` on the request to choose which wallet to pay out from. If you leave it out, Glyde uses your business' home currency. See [Supported Currencies](/api-reference/supported-currencies) for details.
 
 ## How Transfers Work
 
@@ -23,13 +30,13 @@ Send money from your Glyde wallet to any Nigerian bank account. Transfers are pr
 
 Before making transfers:
 
-- **Fund your wallet** — Your Glyde wallet must have sufficient balance (amount + fee)
+- **Fund your wallet** — The wallet for the payout currency must have enough balance to cover the amount and the fee
 - **Configure webhooks** — Transfers require a webhook URL to be set in your dashboard
-- **Get bank codes** — Use the `/v1/banks` endpoint to get valid bank codes
+- **Get bank codes** — Use the `/v1/banks` endpoint to get valid bank codes. The bank must be in the payout currency's country
 
 ## Step 1: Verify the Account
 
-Always verify bank accounts before transferring. This confirms the account exists and shows you the account holder's name:
+For NGN transfers, always verify the bank account before sending. This confirms the account exists and shows you the account holder's name:
 
 ```bash
 GET /v1/account-enquiry?account_number=0264341458&bank_code=058
@@ -48,6 +55,10 @@ GET /v1/account-enquiry?account_number=0264341458&bank_code=058
 
 Display the `account_name` to your user for confirmation before proceeding. This prevents sending money to the wrong person.
 
+<Note>
+  Account enquiry is not available for ZAR accounts. For rand transfers, collect the recipient's account name yourself and send it as `account_name` (see [Sending ZAR](#sending-zar)).
+</Note>
+
 ## Step 2: Initiate the Transfer
 
 Once verified, send the transfer:
@@ -59,6 +70,7 @@ POST /v1/transfer/initiate
 ```json
 {
   "amount": 5000,
+  "currency": "NGN",
   "bank_code": "058",
   "account_number": "0264341458",
   "reference": "payout_abc123"
@@ -66,9 +78,10 @@ POST /v1/transfer/initiate
 ```
 
 **Key fields:**
-- `amount` — Amount in kobo (5000 = ₦50)
+- `amount` — Amount in major units of the payout currency (5000 = ₦5,000)
+- `currency` — `NGN` or `ZAR`. Optional; defaults to your home currency
 - `bank_code` — The recipient's bank code (from `/v1/banks`)
-- `account_number` — 10-digit account number
+- `account_number` — 10-digit account number for NGN
 - `reference` — Your unique identifier for this transfer
 
 The response confirms the transfer was initiated:
@@ -85,6 +98,28 @@ The response confirms the transfer was initiated:
   }
 }
 ```
+
+## Sending ZAR
+
+Rand transfers use the same endpoint with three differences:
+
+- **No account enquiry** — Send the recipient's `account_name` on the request. It is required for ZAR.
+- **South African bank codes** — Use the 6-digit universal branch code from `/v1/banks` (e.g. `250655`).
+- **Account numbers** — Must be 7–11 digits. You can also send an `account_type` of `savings`, `current` or `cheque`.
+
+```json
+{
+  "amount": 750,
+  "currency": "ZAR",
+  "bank_code": "250655",
+  "account_number": "123456789",
+  "account_name": "Thabo Mokoena",
+  "account_type": "savings",
+  "reference": "payout_zar_abc123"
+}
+```
+
+This sends R750 from your ZAR wallet. The fee is charged in rand and taken from the same wallet.
 
 ## Transfer Lifecycle
 
@@ -133,18 +168,20 @@ For failed transfers:
 |-------|-------|----------|
 | Insufficient funds | Wallet balance too low | Fund your wallet before retrying |
 | Duplicate reference | Reference already used | Generate a new unique reference |
-| Invalid bank code | Bank code not recognized | Use codes from `/v1/banks` |
+| Invalid bank code | Bank code not recognized, or belongs to another country | Use codes from `/v1/banks` for the payout currency's country |
+| The provided currency is not supported | `currency` is not `NGN` or `ZAR` | Send `NGN` or `ZAR` |
+| The account name is required for ZAR payouts | `account_name` missing on a ZAR transfer | Include the recipient's `account_name` |
 | Account not found | Account number invalid | Verify the account first |
 | Webhook not configured | No webhook URL set | Configure webhooks in dashboard |
 
 ## Fees
 
-Each transfer incurs a small fee deducted from your wallet. The fee is shown in the initiate response and webhook. Ensure your wallet balance covers both the transfer amount and the fee.
+Each transfer incurs a small fee, charged in the payout currency and deducted from the same wallet. The fee is shown in the initiate response and webhook. Ensure the wallet's balance covers both the transfer amount and the fee.
 
 ## Best Practices
 
-1. **Always verify first** — Never skip account verification; it prevents costly mistakes
+1. **Always verify first** — For NGN, never skip account verification; it prevents costly mistakes. For ZAR, confirm the account name with your recipient
 2. **Show confirmation UI** — Display the verified account name and ask users to confirm before sending
 3. **Use unique references** — Generate references that help you trace transactions (e.g., `payout_{user_id}_{timestamp}`)
 4. **Handle failures gracefully** — Not all transfers succeed; have a process for retrying or notifying affected users
-5. **Monitor your balance** — Set up alerts when your wallet balance gets low
+5. **Monitor your balances** — Check each currency's wallet with `/v1/check-balance?currency=NGN` or `?currency=ZAR`
